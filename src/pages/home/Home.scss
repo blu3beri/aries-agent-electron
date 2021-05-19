@@ -1,0 +1,10 @@
+.HomeContainer {
+  display: flex;
+  height: 100%;
+}
+
+.Main {
+  width: 100%;
+  height: calc(100% - 20px);
+  padding: 10px;
+}

@@ -1,0 +1,23 @@
+@media (prefers-color-scheme: light) {
+  :root {
+    --primary: rgba(9, 161, 237);
+    --secondary: rgba(0, 163, 159);
+    --background: rgba(250, 250, 250);
+    --altBackground: rgba(244, 244, 244);
+    --headerBackground: rgba(244, 244, 244);
+    --activeBackground: rgba(221, 231, 227);
+    --text: #000;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: rgba(97, 218, 251);
+    --secondary: rgba(139, 233, 253);
+    --background: rgba(24, 39, 58);
+    --altBackground: rgba(24, 39, 58);
+    --headerBackground: rgba(24, 39, 58);
+    --activeBackground: rgba(44, 54, 72);
+    --text: #fff;
+  }
+}

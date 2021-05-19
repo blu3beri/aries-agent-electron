@@ -1,0 +1,15 @@
+.App {
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--background);
+  color: var(--text);
+}
+
+.AppContainer {
+  height: 100vh;
+  width: 100vw;
+}
+
+.MacOS {
+  height: calc(100vh - 75px);
+}
