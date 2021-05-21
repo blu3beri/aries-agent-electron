@@ -1,135 +1,62 @@
-button {
-  margin-bottom: 20px;
-  padding: 3px;
-}
-
-.ConnectionsContainer {
-  height: 100%;
-  width: 80%;
-  display: flex;
-}
-
-.NewConnectionButton,
-.ReceiveConnectionButton {
-  height: 50px;
-  width: 50px;
-  font-size: 2rem;
-  background-color: var(--activeBackground);
-  border-radius: 1000px;
-  position: absolute;
-  right: 50px;
-}
-
-.InvitationUrl {
-  padding-top: 20px;
-  height: 100px;
-  width: 75%;
-  word-wrap: break-word;
-  user-select: all;
-}
-
-.NewConnectionButton {
-  top: 100px;
-}
-
-.ReceiveConnectionButton {
-  bottom: 50px;
-}
-
-.ConnectionButton {
-  font-size: 1.2rem;
-  padding: 20px;
-}
-
-.ConnectionContainer,
-.ConnectionNewContainer,
-.ReceiveContainer {
-  padding: 20px;
-  height: 100%;
-}
-
-.ConnectionNewContainer {
-  overflow-y: scroll;
-}
-
-.ConnectionBackButton {
-  position: absolute;
-  top: 110px;
-  right: 50px;
-  background-color: var(--activeBackground);
-  padding: 5px;
-  font-size: 1.3rem;
-  border-radius: 4px;
-}
-
-input {
-  background-color: inherit;
-  border: none;
-  border-bottom: 2px solid var(--primary);
-}
-
-.Form {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  * {
-    margin-right: 50px;
-  }
-
-  input {
-    font-size: 1.3rem;
-  }
-  select,
-  option {
-    color: black;
-  }
-}
-
 .ConnectionsList {
-  overflow-y: scroll !important;
+  width: 500px;
+}
+
+.ConnectionsItem {
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  flex-direction: row;
+
+  &:hover {
+    background-color: var(--primary);
+  }
+  b {
+    width: 125px;
+  }
+}
+
+.TitleContainer {
+  display: flex;
+  justify-content: space-between;
+
+  .BackButton {
+    b {
+      font-size: 18px;
+    }
+    margin-right: 20px;
+    background-color: var(--activeBackground);
+    padding: 0 15px;
+
+    &:hover {
+      background-color: var(--primary);
+    }
+  }
 }
 
 .KeyValueContainer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+  flex-direction: row;
+  padding: 15px;
 
-.Key {
-  text-align: left;
-  padding: 0 30px;
-}
-
-.Value {
-  text-align: left;
-
-  width: 70%;
-}
-
-.QrCode {
-  padding: 30px;
-}
-
-.ReceiveContainer {
-  .ReceiveForm {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    flex-direction: column;
+  .Key {
+    width: 100px;
   }
-  height: 100%;
-  input {
-    width: 250px;
-    margin-bottom: 20px;
-  }
-  button {
-    background-color: var(--activeBackground);
-    font-size: 1.4rem;
-    padding: 5px;
+}
+
+.NewConnectionButton {
+  position: absolute;
+  bottom: 25px;
+  right: 25px;
+  background-color: var(--activeBackground);
+  border-radius: 1000px;
+  width: 65px;
+  height: 65px;
+  font-size: 24px;
+
+  &:hover {
+    background-color: var(--primary);
   }
 }

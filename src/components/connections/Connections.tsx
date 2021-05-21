@@ -1,139 +1,151 @@
-import { ConnectionInvitationMessage, ConnectionRecord } from 'aries-framework'
+import {
+  Agent,
+  ConnectionInvitationMessage,
+  ConnectionRecord,
+} from 'aries-framework'
 import React, { useEffect, useState } from 'react'
-import { getConnections, createConnection, receiveConnection } from '../../utils/connections'
-import QrCode from 'qrcode.react'
+import { useAgent } from '../../providers/agent'
 import './Connections.scss'
 
-type ConnectionProps = {
-  connection: ConnectionRecord
-  setConnection: Function
+const fetchConnections = async (agent: Agent, setConnections: Function) => {
+  const conns = await agent!.connections.getAll()
+  setConnections(conns)
 }
 
 type ConnectionsProps = {
   connections: ConnectionRecord[]
-  setConnection: Function
+  setConnections: Function
+}
+
+type ConnectionProps = {
+  connection: ConnectionRecord | undefined
+  setShowConnection: Function
 }
 
 type NewConnectionProps = {
-  conn: NewConnectionObject
-  setCreateNewConnection: Function
-  setConn: Function
-  setInvitation: Function
-  invitation: ConnectionInvitationMessage
+  agent: Agent
+  setShowNewConnection: Function
 }
 
-type ReceiveConnectionProps = {
-  setReceiveNewConnection: Function
-  setReceiveConnection: Function
-  receiveConnection: string
+const createConnection = async (
+  agent: Agent,
+  config?: { alias: string; autoAcceptConnection: boolean }
+) => {
+  const { invitation, connectionRecord } =
+    await agent!.connections.createConnection(config)
+  return invitation
 }
 
-type NewConnectionObject = {
-  autoAcceptConnection: boolean
-  alias: string
+const receiveConnection = async (
+  agent: Agent,
+  connectionsProps: ConnectionsProps,
+  invitation: ConnectionInvitationMessage,
+  config?: { alias: string; autoAcceptConnection: boolean }
+) => {
+  const connectionRecord = await agent!.connections.receiveInvitation(
+    invitation,
+    config
+  )
+  connectionsProps.setConnections([
+    ...connectionsProps.connections,
+    connectionRecord,
+  ])
 }
 
-const Connections: React.FC = () => {
-  const [connections, setConnections] = useState([] as Array<ConnectionRecord>)
-  const [connection, setConnection] = useState({} as ConnectionRecord)
-  const [conn, setConn] = useState({ alias: '', autoAcceptConnection: false } as NewConnectionObject)
-  const [createNewConnection, setCreateNewConnection] = useState(false)
-  const [receiveNewConnection, setReceiveNewConnection] = useState(false)
-  const [receiveConnection, setReceiveConnection] = useState('')
-  const [invitation, setInvitation] = useState({} as ConnectionInvitationMessage)
+const Connections: React.FC = (): React.ReactElement => {
+  const [connections, setConnections] = useState<ConnectionRecord[]>([])
+  const [connection, setConnection] = useState<ConnectionRecord>()
+  const [showConnection, setShowConnection] = useState<boolean>(false)
+  const [showNewConnection, setShowNewConnection] = useState<boolean>(false)
+
+  const { agent } = useAgent()
 
   useEffect(() => {
-    if (connections.length === 0) {
-      retreiveConnections()
+    if (agent) {
+      fetchConnections(agent, setConnections)
     }
-  })
+  }, [agent])
 
-  const retreiveConnections = async () => {
-    setConnections(await getConnections())
+  const loadConnection = () => {
+    setShowConnection(true)
+    setConnection(connection)
   }
 
-  if (!createNewConnection && !receiveNewConnection) {
-    return (
-      <div className="ConnectionsContainer">
-        {connection?.did ? (
-          <Connection connection={connection} setConnection={setConnection} />
-        ) : (
-          <ConnectionsList connections={connections} setConnection={setConnection} />
-        )}
+  const refreshConnections = async () => {
+    setConnections([])
+    await fetchConnections(agent!, setConnections)
+  }
+
+  return agent ? (
+    showConnection ? (
+      <Connection
+        connection={connection}
+        setShowConnection={setShowConnection}
+      />
+    ) : showNewConnection ? (
+      <NewConnection
+        agent={agent}
+        setShowNewConnection={setShowNewConnection}
+      />
+    ) : (
+      <div className={'ConnectionContainer'}>
+        <div className="TitleContainer">
+          <h1>Connections</h1>
+          <button className="BackButton" onClick={() => refreshConnections()}>
+            <b>Refresh</b>
+          </button>
+        </div>
+        <ul className={'ConnectionsList'}>
+          {connections.map((conn) => {
+            return (
+              <li
+                className={'ConnectionsItem'}
+                key={conn.id}
+                onClick={() => {
+                  loadConnection()
+                }}
+              >
+                <b>{conn.alias ? conn.alias : ''}</b>
+                <p>{conn.id}</p>
+              </li>
+            )
+          })}
+        </ul>
         <button
           className="NewConnectionButton"
-          onClick={() => NewConnection({ setCreateNewConnection, conn, setConn, setInvitation, invitation })}
+          onClick={() => setShowNewConnection(true)}
         >
-          +
-        </button>
-        <button
-          className="ReceiveConnectionButton"
-          onClick={() => ReceiveConnection({ setReceiveNewConnection, setReceiveConnection, receiveConnection })}
-        >
-          +
+          <b>+</b>
         </button>
       </div>
     )
-  } else if (createNewConnection && !receiveNewConnection) {
-    return (
-      <NewConnection
-        setCreateNewConnection={setCreateNewConnection}
-        conn={conn}
-        setConn={setConn}
-        setInvitation={setInvitation}
-        invitation={invitation}
-      />
-    )
-  } else if (receiveNewConnection && !createNewConnection) {
-    return (
-      <ReceiveConnection
-        setReceiveNewConnection={setReceiveNewConnection}
-        setReceiveConnection={setReceiveConnection}
-        receiveConnection={receiveConnection}
-      />
-    )
-  } else {
-    return (
-      <div>
-        <h1>System is broken</h1>
-      </div>
-    )
-  }
-}
-
-const ConnectionsList: React.FC<ConnectionsProps> = ({ connections, setConnection }) => {
-  return (
-    <ul className="ConnectionsList">
-      {connections.map((connection, key) => {
-        return (
-          <li key={key}>
-            <button
-              className="ConnectionButton"
-              onClick={() => {
-                setConnection(connection)
-              }}
-            >
-              {connection.alias ? connection.alias + ' - ' : ''}
-              {connection.id}
-            </button>
-          </li>
-        )
-      })}
-    </ul>
+  ) : (
+    <div className={'ConnectionContainer'}>
+      <h1>Loading!</h1>
+    </div>
   )
 }
 
-const Connection: React.FC<ConnectionProps> = ({ connection, setConnection }) => {
+const Connection: React.FC<ConnectionProps> = (props): React.ReactElement => {
   return (
-    <div className="ConnectionContainer">
-      <button onClick={() => setConnection({} as ConnectionRecord)}>Back</button>
-      <h1>{connection.alias}</h1>
-      {Object.entries(connection)
+    <div>
+      <div className="TitleContainer">
+        <h1>{props.connection?.alias ? props.connection.alias : 'No alias'}</h1>
+        <button
+          className="BackButton"
+          onClick={() => props.setShowConnection(false)}
+        >
+          <b>back</b>
+        </button>
+      </div>
+      {Object.entries(props.connection!)
         .filter(([key, value]) => key !== 'alias' && typeof value === 'string')
         .map(([key, value]) => {
           return (
             <div className="KeyValueContainer" key={key}>
-              <b className="Key">{key.startsWith('_') ? key.substring(1) : key}</b>
+              <b className="Key">
+                {key.startsWith('_') ? key.substring(1) : key}
+              </b>
               <p className="Value">{value}</p>
             </div>
           )
@@ -142,117 +154,76 @@ const Connection: React.FC<ConnectionProps> = ({ connection, setConnection }) =>
   )
 }
 
-const NewConnection: React.FC<NewConnectionProps> = ({
-  setCreateNewConnection,
-  conn,
-  setConn,
-  setInvitation,
-  invitation,
-}) => {
-  setCreateNewConnection(true)
+const NewConnection: React.FC<NewConnectionProps> = (props) => {
+  const [config, setConfig] = useState<{
+    alias: string
+    autoAcceptConnection: boolean
+  }>({ alias: 'INVITER', autoAcceptConnection: true })
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    name: string
+  ) => {
+    switch (name) {
+      case 'alias':
+        setConfig({
+          alias: e.target.value,
+          autoAcceptConnection: config?.autoAcceptConnection,
+        })
+        break
+      case 'autoAcceptConnection':
+        setConfig({
+          alias: config.alias,
+          autoAcceptConnection: e.target.value === 'true' ? true : false,
+        })
+        break
+      default:
+        console.error('Wrong info!')
+    }
+  }
+
   return (
-    <div className="ConnectionNewContainer">
-      <button
-        className="ConnectionBackButton"
-        onClick={() => {
-          setCreateNewConnection(false)
-          setInvitation({})
-        }}
-      >
-        Back
-      </button>
-      <h1>Create Connection</h1>
-      {invitation?.label ? (
-        <p className="InvitationUrl">{Buffer.from(JSON.stringify(invitation)).toString('base64')}</p>
-      ) : (
-        <div className="Form">
-          <input onChange={(e) => handleChange(e, 'alias', setConn, conn)} placeholder={'Alias'} />
-          <div>
-            <p>Auto Accept Connection</p>
-            <select onChange={(e) => handleChange(e, 'autoAcceptConnection', setConn, conn)}>
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
-          </div>
-          <div>
-            <button
-              onClick={() => {
-                handleInvitationSubmit(conn, setInvitation)
-              }}
-            >
-              Send!
-            </button>
+    <div>
+      <div className={'ConnectionContainer'}>
+        <div className="TitleContainer">
+          <h1>New Connection</h1>
+          <button
+            className="BackButton"
+            onClick={() => props.setShowNewConnection(false)}
+          >
+            <b>Back</b>
+          </button>
+        </div>
+        <div>
+          <div className="Form">
+            <input
+              onChange={(e) => handleChange(e, 'alias')}
+              placeholder={'Alias'}
+            />
+            <div>
+              <p>Auto Accept Connection</p>
+              <select onChange={(e) => handleChange(e, 'autoAcceptConnection')}>
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </div>
+            <div>
+              <button
+                onClick={() => {
+                  console.log(config)
+                }}
+              >
+                Send!
+              </button>
+            </div>
           </div>
         </div>
-      )}
-      {Object.entries(invitation).map(([key, value]) => {
-        return (
-          <div className="KeyValueContainer" key={key}>
-            <b className="Key">{key}</b>
-            <p className="Value">{value}</p>
-          </div>
-        )
-      })}
-      {invitation?.label ? (
-        <QrCode value={Buffer.from(JSON.stringify(invitation)).toString('base64')} size={256} className="QrCode" />
-      ) : (
-        <div />
-      )}
-    </div>
-  )
-}
-
-const ReceiveConnection: React.FC<ReceiveConnectionProps> = ({
-  setReceiveNewConnection,
-  setReceiveConnection,
-  receiveConnection,
-}) => {
-  setReceiveNewConnection(true)
-  return (
-    <div className="ReceiveContainer">
-      <button
-        className="ConnectionBackButton"
-        onClick={() => {
-          setReceiveNewConnection(false)
-          setReceiveConnection({})
-        }}
-      >
-        Back
-      </button>
-      <h1>Receive Connection</h1>
-      <div className="ReceiveForm">
-        <input placeholder={'Connection URL'} onChange={(e) => setReceiveConnection(e.target.value)} />
-        <button onClick={() => handleReceieveConnectionSubmit(receiveConnection)}>Send!</button>
       </div>
+      <button onClick={() => createConnection(props.agent, config)}>
+        Create!
+      </button>
     </div>
   )
-}
-
-const handleInvitationSubmit = async (conn: NewConnectionObject, setInvitation: Function) => {
-  const invitation = await createConnection(conn)
-  setInvitation(invitation)
-}
-const handleReceieveConnectionSubmit = async (invitationUrl: string) => {
-  await receiveConnection(invitationUrl)
-}
-
-const handleChange = (event: any, key: string, setConn: Function, conn: NewConnectionObject) => {
-  switch (key) {
-    case 'alias':
-      conn.alias = event.target.value
-      break
-    case 'autoAcceptConnection':
-      if (event.target.value === 'true') {
-        conn.autoAcceptConnection = true
-      } else {
-        conn.autoAcceptConnection = false
-      }
-      break
-    default:
-      break
-  }
-  setConn(conn)
-  console.log(conn)
 }
 
 export default Connections

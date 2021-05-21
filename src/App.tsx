@@ -1,19 +1,22 @@
 import React from 'react'
+import { CustomView, isMacOs } from 'react-device-detect'
 import './App.scss'
 import Header from './components/header/Header'
 import Home from './pages/home/Home'
-import { isMacOs, CustomView } from 'react-device-detect'
+import { AgentProvider } from './providers/agent'
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <CustomView condition={isMacOs}>
-        <Header />
-      </CustomView>
-      <div className={`AppContainer ${isMacOs ? 'MacOS' : ''}`}>
-        <Home />
+    <AgentProvider agentConfig={{}}>
+      <div className="App">
+        <CustomView condition={isMacOs}>
+          <Header />
+        </CustomView>
+        <div className={`AppContainer ${isMacOs ? 'MacOS' : ''}`}>
+          <Home />
+        </div>
       </div>
-    </div>
+    </AgentProvider>
   )
 }
 
