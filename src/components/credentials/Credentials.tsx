@@ -2,6 +2,7 @@ import {
   Agent,
   ConnectionRecord,
   CredentialPreview,
+  CredentialPreviewAttribute,
   CredentialRecord,
 } from 'aries-framework'
 import { CredDef, Schema } from 'indy-sdk'
@@ -13,28 +14,52 @@ type NewCredentialProps = {
   setShowNewCredential: Function
   credentialDefinitions: CredDef[]
   connections: ConnectionRecord[]
+  schema: Schema
+  agent: Agent
+}
+
+type CredentialProps = {
+  agent: Agent
+  credential: CredentialRecord
+  setCredential: Function
+  setShowCredential: Function
 }
 
 const getCredentials = async (agent: Agent, setCredentials: Function) => {
-  setCredentials(await agent.credentials.getAll())
+  const credentials = await agent.credentials.getAll()
+  setCredentials(credentials)
 }
 
 const getConnections = async (agent: Agent, setConnections: Function) => {
   setConnections(await agent.connections.getAll())
 }
 
-// TODO: static definition id for now
-const getCredentialDefinition = async (agent: Agent, id = '1212') => {
+// TODO: static definition id for now, because we cant get all the definition ids of a did
+// TODO: why is schemaId in the cred def `67195`
+const getCredentialDefinition = async (
+  agent: Agent,
+  setCredentialDefinition: Function,
+  setSchema: Function,
+  id = 'VijokaeWFumosZW4KGU5um:3:CL:67223:tag'
+) => {
   try {
-    return await agent.ledger.getCredentialDefinition(id)
+    const credDef = await agent.ledger.getCredentialDefinition(id)
+    setCredentialDefinition([credDef])
+    await getSchema(
+      agent,
+      'VijokaeWFumosZW4KGU5um:2:demoSchema#1622120680372:1.0.1',
+      setSchema
+    )
   } catch (e) {
     console.error(e)
   }
 }
 
-const getSchema = async (agent: Agent, id: string) => {
+// Retreives the schema
+const getSchema = async (agent: Agent, id: string, setSchema: Function) => {
   try {
-    return await agent.ledger.getSchema(id)
+    const schema = await agent.ledger.getSchema(id)
+    setSchema(schema)
   } catch (e) {
     console.error(e)
   }
@@ -48,7 +73,7 @@ const offerCredential = async (
   credentialDefinitionId: string
 ) => {
   try {
-    await agent.credentials.offerCredential(connectionId, {
+    const offer = await agent.credentials.offerCredential(connectionId, {
       preview,
       credentialDefinitionId,
     })
@@ -58,27 +83,50 @@ const offerCredential = async (
 }
 
 // Holder accepts the offer
-const acceptOffer = async (agent: Agent, id: string) => {
+const acceptOffer = async (
+  agent: Agent,
+  id: string,
+  setCredential?: Function
+) => {
   try {
-    await agent.credentials.acceptOffer(id)
+    const credentialRecord = await agent.credentials.acceptOffer(id)
+    console.log(credentialRecord)
+    if (setCredential) {
+      setCredential(credentialRecord)
+    }
   } catch (e) {
     console.error(e)
   }
 }
 
 // Issuer accepts the request
-const acceptRequest = async (agent: Agent, id: string) => {
+const acceptRequest = async (
+  agent: Agent,
+  id: string,
+  setCredential?: Function
+) => {
   try {
-    await agent.credentials.acceptRequest(id)
+    const credentialRecord = await agent.credentials.acceptRequest(id)
+    console.log(credentialRecord)
+    if (setCredential) {
+      setCredential(credentialRecord)
+    }
   } catch (e) {
     console.error(e)
   }
 }
 
 // Holder accepts the credential
-const acceptCredential = async (agent: Agent, id: string) => {
+const acceptCredential = async (
+  agent: Agent,
+  id: string,
+  setCredential?: Function
+) => {
   try {
-    await agent.credentials.acceptCredential(id)
+    const credentialRecord = await agent.credentials.acceptCredential(id)
+    if (setCredential) {
+      setCredential(credentialRecord)
+    }
   } catch (e) {
     console.error(e)
   }
@@ -87,9 +135,10 @@ const acceptCredential = async (agent: Agent, id: string) => {
 const Credentials: React.FC = () => {
   const [credentials, setCredentials] = useState<CredentialRecord[]>([])
   const [credential, setCredential] = useState<CredentialRecord>()
+  const [showCredential, setShowCredential] = useState<boolean>(false)
   const [showNewCredential, setShowNewCredential] = useState<boolean>(false)
   const [connections, setConnections] = useState<ConnectionRecord[]>([])
-  const [schemas, setSchemas] = useState<Schema[]>([])
+  const [schema, setSchema] = useState<Schema>()
   const [credentialDefinitions, setCredentialDefinitions] = useState<CredDef[]>(
     []
   )
@@ -100,8 +149,19 @@ const Credentials: React.FC = () => {
     if (agent) {
       getCredentials(agent, setCredentials)
       getConnections(agent, setConnections)
+      getCredentialDefinition(agent, setCredentialDefinitions, setSchema)
     }
   }, [agent])
+
+  const refreshCredentials = async () => {
+    setCredentials([])
+    await getCredentials(agent!, setCredentials)
+  }
+
+  const loadCredential = (credential: CredentialRecord) => {
+    setCredential(credential)
+    setShowCredential(true)
+  }
 
   return agent ? (
     showNewCredential ? (
@@ -109,13 +169,40 @@ const Credentials: React.FC = () => {
         setShowNewCredential={setShowNewCredential}
         credentialDefinitions={credentialDefinitions}
         connections={connections}
+        schema={schema!}
+        agent={agent}
+      />
+    ) : showCredential ? (
+      <Credential
+        agent={agent}
+        credential={credential!}
+        setCredential={setCredential}
+        setShowCredential={setShowCredential}
       />
     ) : (
       <div>
-        <h1>Credentials</h1>
-        {credentials.forEach((credential) => {
-          return <div>{credential.connectionId}</div>
-        })}
+        <div className="TitleContainer">
+          <h1>Credentials</h1>
+          <button className="BackButton" onClick={() => refreshCredentials()}>
+            <b>Refresh</b>
+          </button>
+        </div>
+        <ul className={'CredentialsList'}>
+          {credentials.map((credential) => {
+            return (
+              <li
+                className={'CredentialsItem'}
+                key={credential.id}
+                onClick={() => {
+                  loadCredential(credential)
+                }}
+              >
+                <b>{credential.state}</b>
+                <p>{credential.connectionId}</p>
+              </li>
+            )
+          })}
+        </ul>
         <button
           className="NewCredentialButton"
           onClick={() => setShowNewCredential(true)}
@@ -139,12 +226,12 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
   }
 
   const [credentialObject, setCredentialObject] = useState<CredentialObject>({
-    connectionId: '',
-    credentialDefinitionId: '',
+    connectionId: props.connections[0].id,
+    credentialDefinitionId: props.credentialDefinitions[0].id,
     preview: new CredentialPreview({ attributes: [] }),
   })
 
-  const handleChange = (key: string, e: any) => {
+  const handleChange = (key: string, e: any, previewKey?: string) => {
     switch (key) {
       case 'connectionId':
         credentialObject.connectionId = e.target.value
@@ -153,13 +240,26 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
         credentialObject.credentialDefinitionId = e.target.value
         break
       case 'preview':
-        credentialObject.preview = e.target.value
+        const attribute = credentialObject.preview.attributes.find(
+          (attr) => attr.name === previewKey
+        )
+        if (attribute) {
+          attribute.value = e.target.value
+        } else {
+          credentialObject.preview.attributes.push(
+            new CredentialPreviewAttribute({
+              name: previewKey!,
+              value: e.target.value,
+              mimeType:
+                previewKey === 'profilePicture' ? 'image/png' : 'text/plain',
+            })
+          )
+        }
         break
       default:
         console.error(`No valid key: ${key}`)
     }
     setCredentialObject(credentialObject)
-    console.log(credentialObject)
   }
 
   return (
@@ -178,14 +278,18 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
           <label>Choose Credential Definition: </label>
           <select onChange={(e) => handleChange('credentialDefinitionId', e)}>
             {props.credentialDefinitions.map((credDef) => {
-              return <option value={credDef.id}>{credDef.id}</option>
+              return (
+                <option key={credDef.id} value={credDef.id}>
+                  {credDef.id}
+                </option>
+              )
             })}
           </select>
           <label>Choose Receiver: </label>
           <select onChange={(e) => handleChange('connectionId', e)}>
             {props.connections.map((connection) => {
               return (
-                <option value={connection.id}>
+                <option value={connection.id} key={connection.id}>
                   {connection.alias
                     ? connection.alias + ' - ' + connection.id
                     : connection.id}
@@ -198,11 +302,107 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
               Enter the credentials (these fields will be generated based on the
               cred def
             </p>
-            <input />
+            {props.schema.attrNames.map((name) => {
+              return (
+                <div key={name}>
+                  <p>{name}</p>
+                  <input
+                    placeholder={name}
+                    onChange={(e) => handleChange('preview', e, name)}
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
-        <button>Send!</button>
+        <button
+          onClick={() =>
+            offerCredential(
+              props.agent,
+              credentialObject.connectionId,
+              credentialObject.preview,
+              credentialObject.credentialDefinitionId
+            )
+          }
+        >
+          Send!
+        </button>
       </div>
+    </div>
+  )
+}
+
+const Credential: React.FC<CredentialProps> = (props) => {
+  return (
+    <div>
+      <div className="TitleContainer">
+        <h1>Credential</h1>
+        <button
+          className="BackButton"
+          onClick={() => props.setShowCredential(false)}
+        >
+          <b>back</b>
+        </button>
+      </div>
+      <div>
+        {Object.entries(props.credential)
+          .filter(
+            ([, value]) => typeof value === 'string' || value instanceof Date
+          )
+          .map(([key, value]) => {
+            return (
+              <div key={key}>
+                <p>
+                  {key} - {JSON.stringify(value)}
+                </p>
+              </div>
+            )
+          })}
+        {props.credential.credentialAttributes?.map((attribute) => {
+          if (attribute.mimeType === 'image/png') {
+            return (
+              <div className="CredentialAttributeImage" key={attribute.name}>
+                {attribute.name} is an image
+              </div>
+            )
+          } else {
+            return (
+              <div className="CredentialAttributeText" key={attribute.name}>
+                {attribute.name} - {attribute.value}
+              </div>
+            )
+          }
+        })}
+      </div>
+      <button
+        onClick={() => {
+          switch (props.credential.state) {
+            case 'offer-received':
+              acceptOffer(props.agent, props.credential.id, props.setCredential)
+              break
+            case 'request-received':
+              acceptRequest(
+                props.agent,
+                props.credential.id,
+                props.setCredential
+              )
+              break
+            case 'credential-received':
+              acceptCredential(
+                props.agent,
+                props.credential.id,
+                props.setCredential
+              )
+              break
+            default:
+              console.error(
+                `state (${props.credential.state}) is not supported yet!`
+              )
+          }
+        }}
+      >
+        Accept!
+      </button>
     </div>
   )
 }

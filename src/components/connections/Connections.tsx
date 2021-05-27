@@ -154,7 +154,6 @@ const Connections: React.FC = (): React.ReactElement => {
 }
 
 const Connection: React.FC<ConnectionProps> = (props): React.ReactElement => {
-  console.log(props)
   return (
     <div>
       <div className="TitleContainer">

@@ -2,10 +2,11 @@ import { Agent, HttpOutboundTransporter, InitConfig } from 'aries-framework'
 import { FileSystem } from 'aries-framework/build/src/storage/fs/FileSystem'
 import dotenv from 'dotenv'
 import type Indy from 'indy-sdk'
+import path from 'path'
 import React, { useContext, useEffect, useState } from 'react'
 import { PollingInboundTransporter } from '../transporters/PollingInboundTransporter'
 import { genesisTransactions } from './genesis'
-dotenv.config()
+dotenv.config({ path: path.resolve(__dirname, '.env') })
 
 declare global {
   interface Window {
@@ -50,20 +51,21 @@ const useAgent = (): AgentContextValue => useContext(AgentContext)
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const AgentProvider = (props: AgentContextProps) => {
   const [agent, setAgent] = useState<Agent | undefined>(undefined)
+  console.log(process.env)
 
   const initAgent = async (): Promise<void> => {
     const agentConfig: InitConfig = {
-      mediatorUrl: 'http://localhost:3001',
-      label: process.env.AGENT_LABEL || '12',
-      walletConfig: { id: process.env.WALLET_NAME || '12' },
-      walletCredentials: { key: process.env.WALLET_KEY || '12' },
+      mediatorUrl: 'http://localhost:3002',
+      label: '2',
+      walletConfig: { id: '2' },
+      walletCredentials: { key: '2' },
       autoAcceptConnections: true,
-      // logger: new ConsoleLogger(LogLevel.debug),
       indy: indyWithErrorHandling as unknown as typeof Indy,
       fileSystem: window.fs,
       genesisTransactions,
-      publicDidSeed: '12312312312312345645645645645686',
-      publicDid: 'VijokaeWFumosZW4KGU5um',
+      publicDid: 'CHfjA9fwnxWw4aBhPueNZD',
+      publicDidSeed: '12312312312312345645645645645687',
+      // logger: new ConsoleLogger(LogLevel.debug),
     }
     const agent = new Agent(agentConfig)
     agent.setInboundTransporter(new PollingInboundTransporter())
