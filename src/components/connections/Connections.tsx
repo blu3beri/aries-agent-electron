@@ -182,8 +182,6 @@ const Connection: React.FC<ConnectionProps> = (props): React.ReactElement => {
 }
 
 const NewConnection: React.FC<NewConnectionProps> = (props) => {
-  const [invitationUrl, setInvitationUrl] = useState<string>()
-
   const [config, setConfig] = useState<{
     alias: string
     autoAcceptConnection: boolean
@@ -217,7 +215,6 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
   ) => {
     const { invitation } = await createConnection(agent, config)
     console.log(invitation.toUrl())
-    setInvitationUrl(invitation.toUrl())
   }
 
   return (
@@ -251,7 +248,6 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
       <button onClick={() => showConnection(props.agent, config)}>
         Create!
       </button>
-      <p>{invitationUrl}</p>
     </div>
   )
 }

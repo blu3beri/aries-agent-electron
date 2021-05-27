@@ -60,7 +60,7 @@ const getCredentialDefinition = async (
   }
 }
 
-// Retreives the schema
+// Retrieves the schema
 const getSchema = async (agent: Agent, id: string, setSchema: Function) => {
   try {
     const schema = await agent.ledger.getSchema(id)
@@ -78,7 +78,7 @@ const offerCredential = async (
   credentialDefinitionId: string
 ) => {
   try {
-    const offer = await agent.credentials.offerCredential(connectionId, {
+    await agent.credentials.offerCredential(connectionId, {
       preview,
       credentialDefinitionId,
     })
