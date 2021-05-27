@@ -66,9 +66,9 @@ const Connections: React.FC = (): React.ReactElement => {
     }
   }, [agent])
 
-  const loadConnection = () => {
+  const loadConnection = (conn: ConnectionRecord) => {
+    setConnection(conn)
     setShowConnection(true)
-    setConnection(connection)
   }
 
   const refreshConnections = async () => {
@@ -102,10 +102,11 @@ const Connections: React.FC = (): React.ReactElement => {
                 className={'ConnectionsItem'}
                 key={conn.id}
                 onClick={() => {
-                  loadConnection()
+                  loadConnection(conn)
                 }}
               >
                 <b>{conn.alias ? conn.alias : ''}</b>
+                <p>{conn.state}</p>
                 <p>{conn.id}</p>
               </li>
             )
@@ -127,6 +128,7 @@ const Connections: React.FC = (): React.ReactElement => {
 }
 
 const Connection: React.FC<ConnectionProps> = (props): React.ReactElement => {
+  console.log(props)
   return (
     <div>
       <div className="TitleContainer">
