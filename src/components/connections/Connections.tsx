@@ -8,8 +8,7 @@ import { useAgent } from '../../providers/agent'
 import './Connections.scss'
 
 const fetchConnections = async (agent: Agent, setConnections: Function) => {
-  const conns = await agent!.connections.getAll()
-  setConnections(conns)
+  setConnections(await agent!.connections.getAll())
 }
 
 type ConnectionsProps = {
@@ -27,29 +26,43 @@ type NewConnectionProps = {
   setShowNewConnection: Function
 }
 
+type ReceiveConnectionProps = {
+  agent: Agent
+  setShowReceiveConnection: Function
+}
+
 const createConnection = async (
   agent: Agent,
   config?: { alias: string; autoAcceptConnection: boolean }
 ) => {
-  const { invitation, connectionRecord } =
-    await agent!.connections.createConnection(config)
-  return invitation
+  return await agent!.connections.createConnection(config)
 }
 
 const receiveConnection = async (
   agent: Agent,
-  connectionsProps: ConnectionsProps,
-  invitation: ConnectionInvitationMessage,
-  config?: { alias: string; autoAcceptConnection: boolean }
+  invitation: ConnectionInvitationMessage | string,
+  connectionsProps?: ConnectionsProps,
+  config: { alias: string; autoAcceptConnection: boolean } = {
+    alias: 'INVITEE',
+    autoAcceptConnection: true,
+  }
 ) => {
-  const connectionRecord = await agent!.connections.receiveInvitation(
-    invitation,
-    config
-  )
-  connectionsProps.setConnections([
-    ...connectionsProps.connections,
-    connectionRecord,
-  ])
+  if (typeof invitation == 'string') {
+    await agent.connections
+      .receiveInvitationFromUrl(invitation, config)
+      .catch((e) => console.error(e))
+  } else {
+    const connectionRecord = await agent!.connections.receiveInvitation(
+      invitation,
+      config
+    )
+    if (connectionsProps) {
+      connectionsProps.setConnections([
+        ...connectionsProps.connections,
+        connectionRecord,
+      ])
+    }
+  }
 }
 
 const Connections: React.FC = (): React.ReactElement => {
@@ -57,6 +70,8 @@ const Connections: React.FC = (): React.ReactElement => {
   const [connection, setConnection] = useState<ConnectionRecord>()
   const [showConnection, setShowConnection] = useState<boolean>(false)
   const [showNewConnection, setShowNewConnection] = useState<boolean>(false)
+  const [showReceiveConnection, setShowReceiveConnection] =
+    useState<boolean>(false)
 
   const { agent } = useAgent()
 
@@ -87,6 +102,11 @@ const Connections: React.FC = (): React.ReactElement => {
         agent={agent}
         setShowNewConnection={setShowNewConnection}
       />
+    ) : showReceiveConnection ? (
+      <ReceiveConnection
+        agent={agent}
+        setShowReceiveConnection={setShowReceiveConnection}
+      />
     ) : (
       <div className={'ConnectionContainer'}>
         <div className="TitleContainer">
@@ -107,7 +127,6 @@ const Connections: React.FC = (): React.ReactElement => {
               >
                 <b>{conn.alias ? conn.alias : ''}</b>
                 <p>{conn.state}</p>
-                <h1>Jogn</h1>
                 <p>{conn.id}</p>
               </li>
             )
@@ -118,6 +137,12 @@ const Connections: React.FC = (): React.ReactElement => {
           onClick={() => setShowNewConnection(true)}
         >
           <b>+</b>
+        </button>
+        <button
+          className="ReceiveConnectionButton"
+          onClick={() => setShowReceiveConnection(true)}
+        >
+          <b>R</b>
         </button>
       </div>
     )
@@ -158,6 +183,8 @@ const Connection: React.FC<ConnectionProps> = (props): React.ReactElement => {
 }
 
 const NewConnection: React.FC<NewConnectionProps> = (props) => {
+  const [invitationUrl, setInvitationUrl] = useState<string>()
+
   const [config, setConfig] = useState<{
     alias: string
     autoAcceptConnection: boolean
@@ -185,6 +212,15 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
     }
   }
 
+  const showConnection = async (
+    agent: Agent,
+    config: { alias: string; autoAcceptConnection: boolean }
+  ) => {
+    const { invitation } = await createConnection(agent, config)
+    console.log(invitation.toUrl())
+    setInvitationUrl(invitation.toUrl())
+  }
+
   return (
     <div>
       <div className={'ConnectionContainer'}>
@@ -210,21 +246,40 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
                 <option value="false">false</option>
               </select>
             </div>
-            <div>
-              <button
-                onClick={() => {
-                  console.log(config)
-                }}
-              >
-                Send!
-              </button>
-            </div>
           </div>
         </div>
       </div>
-      <button onClick={() => createConnection(props.agent, config)}>
+      <button onClick={() => showConnection(props.agent, config)}>
         Create!
       </button>
+      <p>{invitationUrl}</p>
+    </div>
+  )
+}
+
+const ReceiveConnection: React.FC<ReceiveConnectionProps> = (props) => {
+  const [invitationUrl, setInvitationUrl] = useState<string>()
+
+  return (
+    <div>
+      <div className="TitleContainer">
+        <h1>Receive Connection</h1>
+        <button
+          className="BackButton"
+          onClick={() => props.setShowReceiveConnection(false)}
+        >
+          <b>back</b>
+        </button>
+      </div>
+      <div>
+        <input
+          placeholder={'Invitation'}
+          onChange={(e) => setInvitationUrl(e.target.value)}
+        />
+        <button onClick={() => receiveConnection(props.agent, invitationUrl!)}>
+          Receive!
+        </button>
+      </div>
     </div>
   )
 }

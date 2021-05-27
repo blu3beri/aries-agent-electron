@@ -19,7 +19,7 @@ const Main: React.FC<ComponentProps> = (props) => {
       return <Credentials />
     case 'proofs':
       return <Proofs />
-    case 'schema':
+    case 'schemas':
       return <Schema />
     default:
       return <Default />

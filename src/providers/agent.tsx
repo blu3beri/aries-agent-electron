@@ -3,7 +3,6 @@ import { FileSystem } from 'aries-framework/build/src/storage/fs/FileSystem'
 import dotenv from 'dotenv'
 import type Indy from 'indy-sdk'
 import React, { useContext, useEffect, useState } from 'react'
-import { v4 as uuid } from 'uuid'
 import { PollingInboundTransporter } from '../transporters/PollingInboundTransporter'
 import { genesisTransactions } from './genesis'
 dotenv.config()
@@ -55,14 +54,16 @@ const AgentProvider = (props: AgentContextProps) => {
   const initAgent = async (): Promise<void> => {
     const agentConfig: InitConfig = {
       mediatorUrl: 'http://localhost:3001',
-      label: process.env.AGENT_LABEL || uuid(),
-      walletConfig: { id: process.env.WALLET_NAME || uuid() },
-      walletCredentials: { key: process.env.WALLET_KEY || uuid() },
+      label: process.env.AGENT_LABEL || '12',
+      walletConfig: { id: process.env.WALLET_NAME || '12' },
+      walletCredentials: { key: process.env.WALLET_KEY || '12' },
       autoAcceptConnections: true,
       // logger: new ConsoleLogger(LogLevel.debug),
       indy: indyWithErrorHandling as unknown as typeof Indy,
       fileSystem: window.fs,
       genesisTransactions,
+      publicDidSeed: '12312312312312345645645645645686',
+      publicDid: 'VijokaeWFumosZW4KGU5um',
     }
     const agent = new Agent(agentConfig)
     agent.setInboundTransporter(new PollingInboundTransporter())
