@@ -5,9 +5,14 @@ import {
   CredentialPreviewAttribute,
   CredentialRecord,
 } from 'aries-framework'
+import {
+  Attachment,
+  AttachmentData,
+} from 'aries-framework/build/src/decorators/attachment/Attachment'
 import { CredDef, Schema } from 'indy-sdk'
 import React, { useEffect, useState } from 'react'
 import { useAgent } from '../../providers/agent'
+import { Base64 } from '../../utils/base64'
 import './Credentials.scss'
 
 type NewCredentialProps = {
@@ -40,14 +45,14 @@ const getCredentialDefinition = async (
   agent: Agent,
   setCredentialDefinition: Function,
   setSchema: Function,
-  id = 'VijokaeWFumosZW4KGU5um:3:CL:67223:tag'
+  id = 'CHfjA9fwnxWw4aBhPueNZD:3:CL:67233:tag'
 ) => {
   try {
     const credDef = await agent.ledger.getCredentialDefinition(id)
     setCredentialDefinition([credDef])
     await getSchema(
       agent,
-      'VijokaeWFumosZW4KGU5um:2:demoSchema#1622120680372:1.0.1',
+      'CHfjA9fwnxWw4aBhPueNZD:2:demoSchema#1622125997571:1.0.1',
       setSchema
     )
   } catch (e) {
@@ -225,13 +230,16 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
     preview: CredentialPreview
   }
 
+  const [attachment, setAttachment] =
+    useState<{ name: string; attachment: Attachment | undefined }>()
+  const [showAttachment, setShowAttachment] = useState<boolean>(false)
   const [credentialObject, setCredentialObject] = useState<CredentialObject>({
     connectionId: props.connections[0].id,
     credentialDefinitionId: props.credentialDefinitions[0].id,
     preview: new CredentialPreview({ attributes: [] }),
   })
 
-  const handleChange = (key: string, e: any, previewKey?: string) => {
+  const handleChange = async (key: string, e: any, previewKey?: string) => {
     switch (key) {
       case 'connectionId':
         credentialObject.connectionId = e.target.value
@@ -245,21 +253,53 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
         )
         if (attribute) {
           attribute.value = e.target.value
+        } else if (previewKey === 'profilePicture') {
+          credentialObject.preview.attributes.push(
+            new CredentialPreviewAttribute({
+              name: previewKey!,
+              value: await new Base64().fromFile(e.target.files[0]),
+              mimeType: 'image/png',
+            })
+          )
         } else {
           credentialObject.preview.attributes.push(
             new CredentialPreviewAttribute({
               name: previewKey!,
               value: e.target.value,
-              mimeType:
-                previewKey === 'profilePicture' ? 'image/png' : 'text/plain',
+              mimeType: 'text/plain',
             })
           )
         }
+        console.log(credentialObject.preview.attributes)
         break
       default:
         console.error(`No valid key: ${key}`)
     }
     setCredentialObject(credentialObject)
+  }
+
+  const handleAttachmentChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files) {
+      setAttachment({
+        name: attachment?.name ? attachment.name : 'attach#1',
+        attachment: new Attachment({
+          filename: e.target.files![0].name,
+          mimeType: e.target.files![0].type,
+          byteCount: e.target.files![0].size,
+          lastmodTime: e.target.files![0].lastModified,
+          data: new AttachmentData({
+            base64: await new Base64().fromFile(e.target.files![0]),
+          }),
+        }),
+      })
+    } else {
+      setAttachment({
+        name: e.target.value,
+        attachment: attachment?.attachment ? attachment.attachment : undefined,
+      })
+    }
   }
 
   return (
@@ -303,7 +343,7 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
               cred def
             </p>
             {props.schema.attrNames.map((name) => {
-              return (
+              return name !== 'profilePicture' ? (
                 <div key={name}>
                   <p>{name}</p>
                   <input
@@ -311,8 +351,37 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
                     onChange={(e) => handleChange('preview', e, name)}
                   />
                 </div>
+              ) : (
+                <div key={name}>
+                  <p>{name}</p>
+                  <input
+                    type="file"
+                    placeholder={name}
+                    onChange={(e) => handleChange('preview', e, name)}
+                  />
+                </div>
               )
             })}
+            <button onClick={() => setShowAttachment(true)}>
+              Add Attachment!
+            </button>
+            {showAttachment ? (
+              <div>
+                <input
+                  type="text"
+                  placeholder="name"
+                  onChange={(e) => handleAttachmentChange(e)}
+                />
+                <input
+                  type="file"
+                  placeholder="name"
+                  onChange={(e) => handleAttachmentChange(e)}
+                />
+                <button onClick={() => setShowAttachment(false)}>Cancel</button>
+              </div>
+            ) : (
+              <div />
+            )}
           </div>
         </div>
         <button
@@ -346,14 +415,12 @@ const Credential: React.FC<CredentialProps> = (props) => {
       </div>
       <div>
         {Object.entries(props.credential)
-          .filter(
-            ([, value]) => typeof value === 'string' || value instanceof Date
-          )
+          .filter(([, value]) => typeof value === 'string')
           .map(([key, value]) => {
             return (
               <div key={key}>
                 <p>
-                  {key} - {JSON.stringify(value)}
+                  {key} - {value}
                 </p>
               </div>
             )
@@ -362,7 +429,7 @@ const Credential: React.FC<CredentialProps> = (props) => {
           if (attribute.mimeType === 'image/png') {
             return (
               <div className="CredentialAttributeImage" key={attribute.name}>
-                {attribute.name} is an image
+                {attribute.name} = {attribute.value}
               </div>
             )
           } else {
