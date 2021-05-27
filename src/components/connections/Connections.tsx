@@ -1,3 +1,5 @@
+//TODO: Auto Accept connection is not working anymore
+
 import { Agent, ConnectionInvitationMessage, ConnectionRecord } from 'aries-framework'
 import React, { useEffect, useState } from 'react'
 import { useAgent } from '../../providers/agent'
@@ -163,7 +165,7 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
     }
   }
 
-  const showConnection = async (agent: Agent, config: { alias: string; autoAcceptConnection: boolean }) => {
+  const showConnection = async (agent: Agent, config: ConnectionConfig) => {
     const { invitation } = await createConnection(agent, config)
     //TODO: Render properly
     console.log(invitation.toUrl())

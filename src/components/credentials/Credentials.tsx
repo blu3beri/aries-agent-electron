@@ -241,7 +241,7 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
     setCredentialObject(credentialObject)
   }
 
-  const handleAttachmentChange = async (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAttachmentChange = async (key: string, e: React.ChangeEvent<any>) => {
     switch (key) {
       case 'name':
         setAttachment({
@@ -250,18 +250,20 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
         })
         break
       case 'attachments':
-        setAttachment({
-          name: attachment?.name ? attachment.name : '',
-          attachment: new Attachment({
-            filename: e.target.files![0].name,
-            mimeType: e.target.files![0].type,
-            byteCount: e.target.files![0].size,
-            lastmodTime: e.target.files![0].lastModified,
-            data: new AttachmentData({
-              base64: await base64.fromFile(e.target.files![0]),
+        if (e.target.files) {
+          setAttachment({
+            name: attachment?.name ? attachment.name : '',
+            attachment: new Attachment({
+              filename: e.target.files[0].name,
+              mimeType: e.target.files[0].type,
+              byteCount: e.target.files[0].size,
+              lastmodTime: e.target.files[0].lastModified,
+              data: new AttachmentData({
+                base64: await base64.fromFile(e.target.files![0]),
+              }),
             }),
-          }),
-        })
+          })
+        }
         break
       default:
         console.error(`key (${key}) not implemented`)
@@ -288,6 +290,7 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
               )
             })}
           </select>
+          <br />
           <label>Choose Receiver: </label>
           <select onChange={(e) => handleChange('connectionId', e)}>
             {props.connections.map((connection) => {
@@ -298,20 +301,32 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
               )
             })}
           </select>
+          <br />
           <div>
             <p>Enter the credentials (these fields will be generated based on the cred def)</p>
             {props.schema.attrNames.map((name) => {
               return (
                 <div key={name}>
+                  <br />
                   <p>{name}</p>
+                  <p>-----</p>
                   <input placeholder={name} onChange={(e) => handleChange('preview', e, name)} />
+                  <p>or</p>
+                  <input placeholder={'file'} type="file" onChange={(e) => handleChange('preview', e, name)} />
+                  <br />
                 </div>
               )
             })}
             <button onClick={() => setShowAttachment(true)}>Add Attachment!</button>
             {showAttachment ? (
               <div>
-                <input type="text" placeholder="name" onChange={(e) => handleAttachmentChange('name', e)} />
+                <select onChange={(e) => handleAttachmentChange('name', e)}>
+                  {props.schema.attrNames.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
                 <input type="file" placeholder="name" onChange={(e) => handleAttachmentChange('attachment', e)} />
                 <button onClick={() => setShowAttachment(false)}>Cancel</button>
               </div>
