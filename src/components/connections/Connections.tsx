@@ -107,6 +107,7 @@ const Connections: React.FC = (): React.ReactElement => {
               >
                 <b>{conn.alias ? conn.alias : ''}</b>
                 <p>{conn.state}</p>
+                <h1>Jogn</h1>
                 <p>{conn.id}</p>
               </li>
             )
