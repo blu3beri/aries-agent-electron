@@ -28,10 +28,7 @@ function wrapIndyCallWithErrorHandling(func: any) {
 }
 
 const indyWithErrorHandling = Object.fromEntries(
-  Object.entries(window.indy).map(([funcName, funcImpl]) => [
-    funcName,
-    wrapIndyCallWithErrorHandling(funcImpl),
-  ])
+  Object.entries(window.indy).map(([funcName, funcImpl]) => [funcName, wrapIndyCallWithErrorHandling(funcImpl)])
 )
 
 type AgentContextProps = {
@@ -84,11 +81,7 @@ const AgentProvider = (props: AgentContextProps) => {
     }
   }, [])
 
-  return (
-    <AgentContext.Provider value={{ agent }}>
-      {props.children}
-    </AgentContext.Provider>
-  )
+  return <AgentContext.Provider value={{ agent }}>{props.children}</AgentContext.Provider>
 }
 
 export { AgentProvider, useAgent }

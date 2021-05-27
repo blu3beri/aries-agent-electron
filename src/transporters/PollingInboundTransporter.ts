@@ -14,12 +14,8 @@ class PollingInboundTransporter implements InboundTransporter {
   public async registerMediator(agent: Agent) {
     try {
       const mediatorUrl = agent.getMediatorUrl() || ''
-      const mediatorInvitationUrl = await (
-        await fetch(`${mediatorUrl}/invitation`)
-      ).text()
-      const { verkey: mediatorVerkey } = await (
-        await fetch(`${mediatorUrl}/`)
-      ).json()
+      const mediatorInvitationUrl = await (await fetch(`${mediatorUrl}/invitation`)).text()
+      const { verkey: mediatorVerkey } = await (await fetch(`${mediatorUrl}/`)).json()
       await agent.routing.provision({
         verkey: mediatorVerkey,
         invitationUrl: mediatorInvitationUrl,

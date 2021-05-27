@@ -1,19 +1,11 @@
-import {
-  Agent,
-  ConnectionInvitationMessage,
-  ConnectionRecord,
-} from 'aries-framework'
+import { Agent, ConnectionInvitationMessage, ConnectionRecord } from 'aries-framework'
 import React, { useEffect, useState } from 'react'
 import { useAgent } from '../../providers/agent'
 import './Connections.scss'
 
-const fetchConnections = async (agent: Agent, setConnections: Function) => {
-  setConnections(await agent!.connections.getAll())
-}
-
-type ConnectionsProps = {
-  connections: ConnectionRecord[]
-  setConnections: Function
+type ConnectionConfig = {
+  alias: string
+  autoAcceptConnection: boolean
 }
 
 type ConnectionProps = {
@@ -31,37 +23,28 @@ type ReceiveConnectionProps = {
   setShowReceiveConnection: Function
 }
 
-const createConnection = async (
-  agent: Agent,
-  config?: { alias: string; autoAcceptConnection: boolean }
-) => {
-  return await agent!.connections.createConnection(config)
+const getConnections = async (agent: Agent, setConnections: Function) => {
+  setConnections(await agent!.connections.getAll())
+}
+
+const createConnection = async (agent: Agent, config?: ConnectionConfig) => {
+  return await agent.connections.createConnection(config)
 }
 
 const receiveConnection = async (
   agent: Agent,
   invitation: ConnectionInvitationMessage | string,
-  connectionsProps?: ConnectionsProps,
-  config: { alias: string; autoAcceptConnection: boolean } = {
+  config: ConnectionConfig = {
     alias: 'INVITEE',
     autoAcceptConnection: true,
   }
 ) => {
   if (typeof invitation == 'string') {
-    await agent.connections
-      .receiveInvitationFromUrl(invitation, config)
-      .catch((e) => console.error(e))
+    await agent.connections.receiveInvitationFromUrl(invitation, config).catch((e) => console.error(e))
   } else {
-    const connectionRecord = await agent!.connections.receiveInvitation(
-      invitation,
-      config
-    )
-    if (connectionsProps) {
-      connectionsProps.setConnections([
-        ...connectionsProps.connections,
-        connectionRecord,
-      ])
-    }
+    await agent!.connections.receiveInvitation(invitation, config).catch((e) => {
+      console.error(e)
+    })
   }
 }
 
@@ -70,14 +53,13 @@ const Connections: React.FC = (): React.ReactElement => {
   const [connection, setConnection] = useState<ConnectionRecord>()
   const [showConnection, setShowConnection] = useState<boolean>(false)
   const [showNewConnection, setShowNewConnection] = useState<boolean>(false)
-  const [showReceiveConnection, setShowReceiveConnection] =
-    useState<boolean>(false)
+  const [showReceiveConnection, setShowReceiveConnection] = useState<boolean>(false)
 
   const { agent } = useAgent()
 
   useEffect(() => {
     if (agent) {
-      fetchConnections(agent, setConnections)
+      getConnections(agent, setConnections)
     }
   }, [agent])
 
@@ -86,32 +68,18 @@ const Connections: React.FC = (): React.ReactElement => {
     setShowConnection(true)
   }
 
-  const refreshConnections = async () => {
-    setConnections([])
-    await fetchConnections(agent!, setConnections)
-  }
-
   return agent ? (
     showConnection ? (
-      <Connection
-        connection={connection}
-        setShowConnection={setShowConnection}
-      />
+      <Connection connection={connection} setShowConnection={setShowConnection} />
     ) : showNewConnection ? (
-      <NewConnection
-        agent={agent}
-        setShowNewConnection={setShowNewConnection}
-      />
+      <NewConnection agent={agent} setShowNewConnection={setShowNewConnection} />
     ) : showReceiveConnection ? (
-      <ReceiveConnection
-        agent={agent}
-        setShowReceiveConnection={setShowReceiveConnection}
-      />
+      <ReceiveConnection agent={agent} setShowReceiveConnection={setShowReceiveConnection} />
     ) : (
       <div className={'ConnectionContainer'}>
         <div className="TitleContainer">
           <h1>Connections</h1>
-          <button className="BackButton" onClick={() => refreshConnections()}>
+          <button className="BackButton" onClick={async () => await getConnections(agent, setConnections)}>
             <b>Refresh</b>
           </button>
         </div>
@@ -132,16 +100,10 @@ const Connections: React.FC = (): React.ReactElement => {
             )
           })}
         </ul>
-        <button
-          className="NewConnectionButton"
-          onClick={() => setShowNewConnection(true)}
-        >
+        <button className="NewConnectionButton" onClick={() => setShowNewConnection(true)}>
           <b>+</b>
         </button>
-        <button
-          className="ReceiveConnectionButton"
-          onClick={() => setShowReceiveConnection(true)}
-        >
+        <button className="ReceiveConnectionButton" onClick={() => setShowReceiveConnection(true)}>
           <b>R</b>
         </button>
       </div>
@@ -158,10 +120,7 @@ const Connection: React.FC<ConnectionProps> = (props): React.ReactElement => {
     <div>
       <div className="TitleContainer">
         <h1>{props.connection?.alias ? props.connection.alias : 'No alias'}</h1>
-        <button
-          className="BackButton"
-          onClick={() => props.setShowConnection(false)}
-        >
+        <button className="BackButton" onClick={() => props.setShowConnection(false)}>
           <b>back</b>
         </button>
       </div>
@@ -170,9 +129,7 @@ const Connection: React.FC<ConnectionProps> = (props): React.ReactElement => {
         .map(([key, value]) => {
           return (
             <div className="KeyValueContainer" key={key}>
-              <b className="Key">
-                {key.startsWith('_') ? key.substring(1) : key}
-              </b>
+              <b className="Key">{key.startsWith('_') ? key.substring(1) : key}</b>
               <p className="Value">{value}</p>
             </div>
           )
@@ -182,15 +139,12 @@ const Connection: React.FC<ConnectionProps> = (props): React.ReactElement => {
 }
 
 const NewConnection: React.FC<NewConnectionProps> = (props) => {
-  const [config, setConfig] = useState<{
-    alias: string
-    autoAcceptConnection: boolean
-  }>({ alias: 'INVITER', autoAcceptConnection: true })
+  const [config, setConfig] = useState<ConnectionConfig>({
+    alias: 'INVITER',
+    autoAcceptConnection: true,
+  })
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    name: string
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, name: string) => {
     switch (name) {
       case 'alias':
         setConfig({
@@ -209,11 +163,9 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
     }
   }
 
-  const showConnection = async (
-    agent: Agent,
-    config: { alias: string; autoAcceptConnection: boolean }
-  ) => {
+  const showConnection = async (agent: Agent, config: { alias: string; autoAcceptConnection: boolean }) => {
     const { invitation } = await createConnection(agent, config)
+    //TODO: Render properly
     console.log(invitation.toUrl())
   }
 
@@ -222,19 +174,13 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
       <div className={'ConnectionContainer'}>
         <div className="TitleContainer">
           <h1>New Connection</h1>
-          <button
-            className="BackButton"
-            onClick={() => props.setShowNewConnection(false)}
-          >
+          <button className="BackButton" onClick={() => props.setShowNewConnection(false)}>
             <b>Back</b>
           </button>
         </div>
         <div>
           <div className="Form">
-            <input
-              onChange={(e) => handleChange(e, 'alias')}
-              placeholder={'Alias'}
-            />
+            <input onChange={(e) => handleChange(e, 'alias')} placeholder={'Alias'} />
             <div>
               <p>Auto Accept Connection</p>
               <select onChange={(e) => handleChange(e, 'autoAcceptConnection')}>
@@ -245,9 +191,7 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
           </div>
         </div>
       </div>
-      <button onClick={() => showConnection(props.agent, config)}>
-        Create!
-      </button>
+      <button onClick={() => showConnection(props.agent, config)}>Create!</button>
     </div>
   )
 }
@@ -259,21 +203,13 @@ const ReceiveConnection: React.FC<ReceiveConnectionProps> = (props) => {
     <div>
       <div className="TitleContainer">
         <h1>Receive Connection</h1>
-        <button
-          className="BackButton"
-          onClick={() => props.setShowReceiveConnection(false)}
-        >
+        <button className="BackButton" onClick={() => props.setShowReceiveConnection(false)}>
           <b>back</b>
         </button>
       </div>
       <div>
-        <input
-          placeholder={'Invitation'}
-          onChange={(e) => setInvitationUrl(e.target.value)}
-        />
-        <button onClick={() => receiveConnection(props.agent, invitationUrl!)}>
-          Receive!
-        </button>
+        <input placeholder={'Invitation'} onChange={(e) => setInvitationUrl(e.target.value)} />
+        <button onClick={() => receiveConnection(props.agent, invitationUrl!)}>Receive!</button>
       </div>
     </div>
   )

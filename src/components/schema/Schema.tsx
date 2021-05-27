@@ -1,8 +1,5 @@
 import { Agent } from 'aries-framework'
-import {
-  CredentialDefinitionTemplate,
-  SchemaTemplate,
-} from 'aries-framework/build/src/modules/ledger/services'
+import { CredentialDefinitionTemplate, SchemaTemplate } from 'aries-framework/build/src/modules/ledger/services'
 import { CredDef, Schema } from 'indy-sdk'
 import React, { useState } from 'react'
 import { useAgent } from '../../providers/agent'
@@ -20,11 +17,7 @@ const createSchema = async (agent: Agent, setSchema: Function) => {
   setSchema(schema)
 }
 
-const createCredentialDefinition = async (
-  agent: Agent,
-  schema: Schema,
-  setCredentialDefinition: Function
-) => {
+const createCredentialDefinition = async (agent: Agent, schema: Schema, setCredentialDefinition: Function) => {
   const credentialDefinitionTemplate: CredentialDefinitionTemplate = {
     schema,
     tag: 'tag',
@@ -32,9 +25,7 @@ const createCredentialDefinition = async (
     supportRevocation: false,
   }
 
-  const credDef = await agent.ledger.registerCredentialDefinition(
-    credentialDefinitionTemplate
-  )
+  const credDef = await agent.ledger.registerCredentialDefinition(credentialDefinitionTemplate)
   console.log(credDef)
   setCredentialDefinition(credDef)
 }
@@ -48,14 +39,8 @@ const SchemaComponent: React.FC = () => {
   return agent ? (
     <div className="SchemaContainer">
       <h1>Schemas</h1>
-      <button onClick={() => createSchema(agent, setSchema)}>
-        Create Schema!
-      </button>
-      <button
-        onClick={() =>
-          createCredentialDefinition(agent, schema!, setCredentialDefinition)
-        }
-      >
+      <button onClick={() => createSchema(agent, setSchema)}>Create Schema!</button>
+      <button onClick={() => createCredentialDefinition(agent, schema!, setCredentialDefinition)}>
         Create Credential Definition!
       </button>
     </div>
