@@ -47,3 +47,20 @@ select {
 ::-webkit-scrollbar {
   display: none;
 }
+
+input {
+  background-color: inherit;
+  border: none;
+  border-bottom: 2px solid var(--primary);
+}
+
+span {
+  cursor: pointer;
+  padding: 10px;
+  background-color: var(--activeBackground);
+  border-radius: 5px;
+
+  &:hover {
+    background-color: var(--primary);
+  }
+}

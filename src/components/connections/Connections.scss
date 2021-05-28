@@ -42,10 +42,14 @@
 .KeyValueContainer {
   display: flex;
   flex-direction: row;
-  padding: 15px;
+  padding: 10px;
 
   .Key {
-    width: 100px;
+    width: 150px;
+  }
+
+  img {
+    width: 150px;
   }
 }
 
@@ -70,4 +74,63 @@
 
 .ReceiveConnectionButton {
   left: 250px;
+}
+
+.InvitationForm {
+  height: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  input {
+    width: 300px;
+    font-size: 1.2rem;
+  }
+
+  button {
+    background-color: var(--activeBackground);
+    padding: 10px;
+    font-weight: bold;
+
+    &:hover {
+      background-color: var(--primary);
+    }
+  }
+
+  * {
+    margin-bottom: 15px;
+  }
+}
+
+.AutoAccept {
+  display: flex;
+
+  * {
+    margin-right: 10px;
+  }
+}
+
+.ReceiveForm {
+  height: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  input {
+    margin-bottom: 15px;
+    width: 300px;
+    font-size: 1.2rem;
+  }
+
+  button {
+    background-color: var(--activeBackground);
+    padding: 10px;
+    font-weight: bold;
+
+    &:hover {
+      background-color: var(--primary);
+    }
+  }
 }

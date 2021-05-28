@@ -2,6 +2,7 @@
 
 import { Agent, ConnectionInvitationMessage, ConnectionRecord } from 'aries-framework'
 import React, { useEffect, useState } from 'react'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { useAgent } from '../../providers/agent'
 import './Connections.scss'
 
@@ -145,6 +146,8 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
     alias: 'INVITER',
     autoAcceptConnection: true,
   })
+  const [invitation, setInvitation] = useState<ConnectionInvitationMessage>()
+  const [copied, setCopied] = useState<boolean>(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, name: string) => {
     switch (name) {
@@ -168,32 +171,46 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
   const showConnection = async (agent: Agent, config: ConnectionConfig) => {
     const { invitation } = await createConnection(agent, config)
     //TODO: Render properly
-    console.log(invitation.toUrl())
+    setInvitation(invitation)
   }
 
   return (
-    <div>
-      <div className={'ConnectionContainer'}>
-        <div className="TitleContainer">
-          <h1>New Connection</h1>
-          <button className="BackButton" onClick={() => props.setShowNewConnection(false)}>
-            <b>Back</b>
-          </button>
-        </div>
-        <div>
-          <div className="Form">
-            <input onChange={(e) => handleChange(e, 'alias')} placeholder={'Alias'} />
-            <div>
-              <p>Auto Accept Connection</p>
-              <select onChange={(e) => handleChange(e, 'autoAcceptConnection')}>
-                <option value="true">true</option>
-                <option value="false">false</option>
-              </select>
-            </div>
-          </div>
-        </div>
+    <div style={{ height: '100%' }}>
+      <div className="TitleContainer">
+        <h1>New Connection</h1>
+        <button className="BackButton" onClick={() => props.setShowNewConnection(false)}>
+          <b>Back</b>
+        </button>
       </div>
-      <button onClick={() => showConnection(props.agent, config)}>Create!</button>
+      <div className="InvitationForm">
+        <input onChange={(e) => handleChange(e, 'alias')} placeholder={'Alias'} />
+        <div className="AutoAccept">
+          <b>Auto Accept Connection</b>
+          <select onChange={(e) => handleChange(e, 'autoAcceptConnection')}>
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+        </div>
+        <button onClick={() => showConnection(props.agent, config)}>Create!</button>
+        {invitation ? (
+          Object.entries(invitation).map(([key, value]) => {
+            return (
+              <p>
+                {key} - {value}
+              </p>
+            )
+          })
+        ) : (
+          <div />
+        )}
+        {invitation ? (
+          <CopyToClipboard text={invitation.toUrl()} onCopy={() => setCopied(true)}>
+            {copied ? <span>Copied to clipboard!</span> : <span>Copy to clipboard!</span>}
+          </CopyToClipboard>
+        ) : (
+          <div />
+        )}
+      </div>
     </div>
   )
 }
@@ -202,14 +219,14 @@ const ReceiveConnection: React.FC<ReceiveConnectionProps> = (props) => {
   const [invitationUrl, setInvitationUrl] = useState<string>()
 
   return (
-    <div>
+    <div style={{ height: '100%' }}>
       <div className="TitleContainer">
         <h1>Receive Connection</h1>
         <button className="BackButton" onClick={() => props.setShowReceiveConnection(false)}>
           <b>back</b>
         </button>
       </div>
-      <div>
+      <div className="ReceiveForm">
         <input placeholder={'Invitation'} onChange={(e) => setInvitationUrl(e.target.value)} />
         <button onClick={() => receiveConnection(props.agent, invitationUrl!)}>Receive!</button>
       </div>

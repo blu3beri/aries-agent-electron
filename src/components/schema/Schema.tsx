@@ -32,7 +32,7 @@ const createCredentialDefinition = async (agent: Agent, schema: Schema, setCrede
 
 const SchemaComponent: React.FC = () => {
   const [schema, setSchema] = useState<Schema>()
-  const [credentialDefinition, setCredentialDefinition] = useState<CredDef>()
+  const [, setCredentialDefinition] = useState<CredDef>()
 
   const { agent } = useAgent()
 

@@ -356,41 +356,53 @@ const Credential: React.FC<CredentialProps> = (props) => {
   return (
     <div>
       <div className="TitleContainer">
-        <h1>Credential</h1>
+        <h1>Credential - {props.credential.state}</h1>
         <button className="BackButton" onClick={() => props.setShowCredential(false)}>
           <b>back</b>
         </button>
       </div>
       <div>
+        <br />
+        {props.credential.credentialAttributes?.map((attribute) => {
+          //Rendering of different MIME-types happens here
+          switch (attribute.mimeType) {
+            case 'image/png':
+              return (
+                <div className="KeyValueContainer" key={attribute.name}>
+                  <b className="Key">{attribute.name}</b>
+                  <img src={attribute.value} alt={attribute.name}></img>
+                </div>
+              )
+            case 'application/pdf':
+              return (
+                <div className="KeyValueContainer" key={attribute.name}>
+                  <b className="Key">{attribute.name}</b>
+                  <embed src={attribute.value}></embed>
+                </div>
+              )
+            default:
+              return (
+                <div className="KeyValueContainer" key={attribute.name}>
+                  <b className="Key">{attribute.name}</b>
+                  <p className="Value">{attribute.value}</p>
+                </div>
+              )
+          }
+        })}
+        <h3>Metadata</h3>
         {Object.entries(props.credential)
           .filter(([, value]) => typeof value === 'string')
           .map(([key, value]) => {
             return (
-              <div key={key}>
-                <p>
-                  {key} - {value}
-                </p>
+              <div key={key} className="KeyValueContainer">
+                <b className="Key">{key}</b>
+                <p className="Value">{value}</p>
               </div>
             )
           })}
-        {props.credential.credentialAttributes?.map((attribute) => {
-          //Rendering of different MIME-types happens here
-          if (attribute.mimeType === 'image/png') {
-            return (
-              <div className="CredentialAttributeImage" key={attribute.name}>
-                {attribute.name} = {attribute.value}
-              </div>
-            )
-          } else {
-            return (
-              <div className="CredentialAttributeText" key={attribute.name}>
-                {attribute.name} - {attribute.value}
-              </div>
-            )
-          }
-        })}
       </div>
       <button
+        className="NewConnectionButton"
         onClick={() => {
           switch (props.credential.state) {
             case 'offer-received':
@@ -407,7 +419,7 @@ const Credential: React.FC<CredentialProps> = (props) => {
           }
         }}
       >
-        Accept!
+        <b>A</b>
       </button>
     </div>
   )
