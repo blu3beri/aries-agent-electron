@@ -13,6 +13,7 @@ const schemaTemplate: SchemaTemplate = {
 
 const createSchema = async (agent: Agent, setSchema: Function) => {
   const schema = await agent.ledger.registerSchema(schemaTemplate)
+  //TODO: display
   console.log(schema)
   setSchema(schema)
 }
@@ -26,7 +27,9 @@ const createCredentialDefinition = async (agent: Agent, schema: Schema, setCrede
   }
 
   const credDef = await agent.ledger.registerCredentialDefinition(credentialDefinitionTemplate)
-  console.log(credDef)
+  localStorage.setItem('credDef', JSON.stringify(credDef))
+  //TODO: display
+  console.log('CredentialDefinition made!')
   setCredentialDefinition(credDef)
 }
 

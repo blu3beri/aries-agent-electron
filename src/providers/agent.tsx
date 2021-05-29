@@ -1,4 +1,4 @@
-import { Agent, HttpOutboundTransporter, InitConfig } from 'aries-framework'
+import { Agent, ConsoleLogger, HttpOutboundTransporter, InitConfig, LogLevel } from 'aries-framework'
 import { FileSystem } from 'aries-framework/build/src/storage/fs/FileSystem'
 import dotenv from 'dotenv'
 import type Indy from 'indy-sdk'
@@ -53,16 +53,16 @@ const AgentProvider = (props: AgentContextProps) => {
   const initAgent = async (): Promise<void> => {
     const agentConfig: InitConfig = {
       mediatorUrl: 'http://localhost:3002',
-      label: '2',
-      walletConfig: { id: '2' },
-      walletCredentials: { key: '2' },
+      label: '5',
+      walletConfig: { id: '5' },
+      walletCredentials: { key: '5' },
       autoAcceptConnections: true,
       indy: indyWithErrorHandling as unknown as typeof Indy,
       fileSystem: window.fs,
       genesisTransactions,
       publicDid: 'CHfjA9fwnxWw4aBhPueNZD',
       publicDidSeed: '12312312312312345645645645645687',
-      // logger: new ConsoleLogger(LogLevel.debug),
+      logger: new ConsoleLogger(LogLevel.debug),
     }
     const agent = new Agent(agentConfig)
     agent.setInboundTransporter(new PollingInboundTransporter())

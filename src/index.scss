@@ -64,3 +64,19 @@ span {
     background-color: var(--primary);
   }
 }
+
+input[type='file'] {
+  display: none;
+}
+
+.CustomFileUpload {
+  font-size: 0.8rem;
+  cursor: pointer;
+  background-color: var(--activeBackground);
+  padding: 2px;
+  border-radius: 2px;
+
+  &:hover {
+    background-color: var(--primary);
+  }
+}

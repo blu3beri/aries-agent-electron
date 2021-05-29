@@ -37,18 +37,11 @@ const getConnections = async (agent: Agent, setConnections: Function) => {
   setConnections(await agent.connections.getAll())
 }
 
-// TODO: static definition id for now, because we cant get all the definition ids of a did
-// TODO: create schemaId from definition
-const getCredentialDefinition = async (
-  agent: Agent,
-  setCredentialDefinition: Function,
-  setSchema: Function,
-  id = 'CHfjA9fwnxWw4aBhPueNZD:3:CL:67233:tag'
-) => {
+const getCredentialDefinition = async (agent: Agent, setCredentialDefinition: Function, setSchema: Function) => {
   try {
-    const credDef = await agent.ledger.getCredentialDefinition(id)
+    const credDef = JSON.parse(localStorage.getItem('credDef')!)
     setCredentialDefinition([credDef])
-    await getSchema(agent, 'CHfjA9fwnxWw4aBhPueNZD:2:demoSchema#1622125997571:1.0.1', setSchema)
+    await getSchema(agent, credDef.schemaId, setSchema)
   } catch (e) {
     console.error(e)
   }
@@ -57,8 +50,17 @@ const getCredentialDefinition = async (
 // Retrieves the schema
 const getSchema = async (agent: Agent, id: string, setSchema: Function) => {
   try {
-    const schema = await agent.ledger.getSchema(id)
-    setSchema(schema)
+    // @ts-ignore
+    const request = await window.indy.buildGetTxnRequest(null, null, +id)
+    // @ts-ignore
+    const ledgerResponse = await window.indy.submitRequest(
+      // @ts-ignore
+      await agent.ledger.ledgerService.getPoolHandle(),
+      request
+    )
+    //@ts-ignore
+    const schemaId = ledgerResponse.result.data.txnMetadata.txnId
+    setSchema(await agent.ledger.getSchema(schemaId))
   } catch (e) {
     console.error(e)
   }
@@ -296,30 +298,31 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
             {props.connections.map((connection) => {
               return (
                 <option value={connection.id} key={connection.id}>
-                  {connection.alias ? connection.alias + ' - ' + connection.id : connection.id}
+                  {connection.alias ? `${connection.alias} - ${connection.id} - ${connection.state}` : connection.id}
                 </option>
               )
             })}
           </select>
           <br />
           <div>
-            <p>Enter the credentials (these fields will be generated based on the cred def)</p>
+            <h3>Credential</h3>
             {props.schema.attrNames.map((name) => {
               return (
-                <div key={name}>
-                  <br />
-                  <p>{name}</p>
-                  <p>-----</p>
+                <div key={name} className="AttrNameContainer">
                   <input placeholder={name} onChange={(e) => handleChange('preview', e, name)} />
                   <p>or</p>
-                  <input placeholder={'file'} type="file" onChange={(e) => handleChange('preview', e, name)} />
-                  <br />
+                  <label className="CustomFileUpload">
+                    <input placeholder={'file'} type="file" onChange={(e) => handleChange('preview', e, name)} />
+                    Choose file
+                  </label>
                 </div>
               )
             })}
-            <button onClick={() => setShowAttachment(true)}>Add Attachment!</button>
+            <button className="AttachmentButton" onClick={() => setShowAttachment(true)}>
+              Add Attachment!
+            </button>
             {showAttachment ? (
-              <div>
+              <div className="AttrNameContainer">
                 <select onChange={(e) => handleAttachmentChange('name', e)}>
                   {props.schema.attrNames.map((name) => (
                     <option key={name} value={name}>
@@ -327,7 +330,10 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
                     </option>
                   ))}
                 </select>
-                <input type="file" placeholder="name" onChange={(e) => handleAttachmentChange('attachment', e)} />
+                <label className="CustomFileUpload">
+                  <input type="file" placeholder="name" onChange={(e) => handleAttachmentChange('attachment', e)} />
+                  Choose file
+                </label>
                 <button onClick={() => setShowAttachment(false)}>Cancel</button>
               </div>
             ) : (
@@ -336,6 +342,7 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
           </div>
         </div>
         <button
+          className="NewConnectionButton"
           onClick={() =>
             offerCredential(
               props.agent,
@@ -345,7 +352,7 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
             )
           }
         >
-          Send!
+          <b>S</b>
         </button>
       </div>
     </div>

@@ -195,7 +195,7 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
         {invitation ? (
           Object.entries(invitation).map(([key, value]) => {
             return (
-              <p>
+              <p key={key}>
                 {key} - {value}
               </p>
             )
