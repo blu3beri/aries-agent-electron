@@ -52,10 +52,10 @@ const AgentProvider = (props: AgentContextProps) => {
 
   const initAgent = async (): Promise<void> => {
     const agentConfig: InitConfig = {
-      mediatorUrl: 'http://localhost:3002',
-      label: '5',
-      walletConfig: { id: '5' },
-      walletCredentials: { key: '5' },
+      mediatorUrl: 'http://localhost:3001',
+      label: '7',
+      walletConfig: { id: '7' },
+      walletCredentials: { key: '7' },
       autoAcceptConnections: true,
       indy: indyWithErrorHandling as unknown as typeof Indy,
       fileSystem: window.fs,

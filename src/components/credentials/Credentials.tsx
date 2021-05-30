@@ -40,8 +40,10 @@ const getConnections = async (agent: Agent, setConnections: Function) => {
 const getCredentialDefinition = async (agent: Agent, setCredentialDefinition: Function, setSchema: Function) => {
   try {
     const credDef = JSON.parse(localStorage.getItem('credDef')!)
-    setCredentialDefinition([credDef])
-    await getSchema(agent, credDef.schemaId, setSchema)
+    if (credDef) {
+      setCredentialDefinition([credDef])
+      await getSchema(agent, credDef.schemaId, setSchema)
+    }
   } catch (e) {
     console.error(e)
   }
@@ -71,12 +73,14 @@ const offerCredential = async (
   agent: Agent,
   connectionId: string,
   preview: CredentialPreview,
-  credentialDefinitionId: string
+  credentialDefinitionId: string,
+  attachment: { name: string; attachment: Attachment } | undefined
 ) => {
   try {
     await agent.credentials.offerCredential(connectionId, {
       preview,
       credentialDefinitionId,
+      linkedAttachments: attachment ? [attachment] : undefined,
     })
   } catch (e) {
     console.error(e)
@@ -251,7 +255,7 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
           attachment: attachment?.attachment ? attachment.attachment : undefined,
         })
         break
-      case 'attachments':
+      case 'attachment':
         if (e.target.files) {
           setAttachment({
             name: attachment?.name ? attachment.name : '',
@@ -348,7 +352,8 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
               props.agent,
               credentialObject.connectionId,
               credentialObject.preview,
-              credentialObject.credentialDefinitionId
+              credentialObject.credentialDefinitionId,
+              { name: attachment!.name, attachment: attachment!.attachment! }
             )
           }
         >
@@ -374,10 +379,16 @@ const Credential: React.FC<CredentialProps> = (props) => {
           //Rendering of different MIME-types happens here
           switch (attribute.mimeType) {
             case 'image/png':
+              console.log(attribute.value)
+              // find matching attachment
+              const attrId = attribute.value
+              const attachment = props.credential.attachments
+                ? props.credential.attachments.find((attachment) => attachment.id === attrId)
+                : undefined
               return (
                 <div className="KeyValueContainer" key={attribute.name}>
                   <b className="Key">{attribute.name}</b>
-                  <img src={attribute.value} alt={attribute.name}></img>
+                  <img src={attachment?.data.base64} alt={attribute.name} className="AttachmenImage"></img>
                 </div>
               )
             case 'application/pdf':
