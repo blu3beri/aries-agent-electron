@@ -353,7 +353,9 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
               credentialObject.connectionId,
               credentialObject.preview,
               credentialObject.credentialDefinitionId,
-              { name: attachment!.name, attachment: attachment!.attachment! }
+              attachment?.name && attachment?.attachment
+                ? { name: attachment!.name, attachment: attachment!.attachment! }
+                : undefined
             )
           }
         >
