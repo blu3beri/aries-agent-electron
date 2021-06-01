@@ -30,7 +30,7 @@ class PollingInboundTransporter implements InboundTransporter {
     const loop = async () => {
       while (!this.stop) {
         await agent.routing.downloadMessages()
-        await new Promise((res) => setTimeout(res, 10000))
+        await new Promise((res) => setTimeout(res, 2000))
       }
     }
     new Promise(() => {

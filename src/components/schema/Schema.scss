@@ -7,3 +7,14 @@
   justify-content: center;
   align-items: center;
 }
+
+.InputFields {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  width: 200px;
+
+  input {
+    margin: 10px 0;
+  }
+}

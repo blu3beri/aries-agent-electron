@@ -48,14 +48,13 @@ const useAgent = (): AgentContextValue => useContext(AgentContext)
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const AgentProvider = (props: AgentContextProps) => {
   const [agent, setAgent] = useState<Agent | undefined>(undefined)
-  console.log(process.env)
 
   const initAgent = async (): Promise<void> => {
     const agentConfig: InitConfig = {
       mediatorUrl: 'http://localhost:3001',
-      label: '7',
-      walletConfig: { id: '7' },
-      walletCredentials: { key: '7' },
+      label: '216',
+      walletConfig: { id: '216' },
+      walletCredentials: { key: '216' },
       autoAcceptConnections: true,
       indy: indyWithErrorHandling as unknown as typeof Indy,
       fileSystem: window.fs,

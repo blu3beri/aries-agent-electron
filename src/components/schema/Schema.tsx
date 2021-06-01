@@ -79,14 +79,21 @@ const SchemaComponent: React.FC = () => {
     <div className="SchemaContainer">
       <h1>Schemas</h1>
       <div>
-        <input type="text" placeholder="name" onChange={(e) => handleChange('name', e)} />
-        <input type="text" placeholder="version" onChange={(e) => handleChange('version', e)} />
-        <input type="text" placeholder="Attribute" onChange={(e) => handleChange('attr1', e)} />
-        <input type="text" placeholder="Attribute" onChange={(e) => handleChange('attr2', e)} />
-        <input type="text" placeholder="Attribute" onChange={(e) => handleChange('attr3', e)} />
+        <div className="InputFields">
+          <input type="text" placeholder="name" onChange={(e) => handleChange('name', e)} />
+          <input type="text" placeholder="version" onChange={(e) => handleChange('version', e)} />
+        </div>
+        <div className="InputFields">
+          <input type="text" placeholder="Attribute 1" onChange={(e) => handleChange('attr1', e)} />
+          <input type="text" placeholder="Attribute 2" onChange={(e) => handleChange('attr2', e)} />
+          <input type="text" placeholder="Attribute 3" onChange={(e) => handleChange('attr3', e)} />
+        </div>
       </div>
-      <button onClick={() => createSchemaAndDefinition(agent, schemaTemplate, attributes, setWritten, setLoading)}>
-        Create!
+      <button
+        className="NewCredentialButton"
+        onClick={() => createSchemaAndDefinition(agent, schemaTemplate, attributes, setWritten, setLoading)}
+      >
+        C
       </button>
       <div className="SchemaInformation">
         {loading ? <p>loading</p> : written ? <p>Schema and credential definition have been made!</p> : <div />}

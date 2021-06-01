@@ -1,6 +1,7 @@
 import {
   Agent,
   ConnectionRecord,
+  CredentialOfferTemplate,
   CredentialPreview,
   CredentialPreviewAttribute,
   CredentialRecord,
@@ -69,19 +70,9 @@ const getSchema = async (agent: Agent, id: string, setSchema: Function) => {
 }
 
 // Issuer sends an offer
-const offerCredential = async (
-  agent: Agent,
-  connectionId: string,
-  preview: CredentialPreview,
-  credentialDefinitionId: string,
-  attachment: { name: string; attachment: Attachment } | undefined
-) => {
+const offerCredential = async (agent: Agent, connectionId: string, credentialTemplate: CredentialOfferTemplate) => {
   try {
-    await agent.credentials.offerCredential(connectionId, {
-      preview,
-      credentialDefinitionId,
-      linkedAttachments: attachment ? [attachment] : undefined,
-    })
+    await agent.credentials.offerCredential(connectionId, credentialTemplate)
   } catch (e) {
     console.error(e)
   }
@@ -142,8 +133,8 @@ const Credentials: React.FC = () => {
     }
   }, [agent])
 
-  const loadCredential = (credential: CredentialRecord) => {
-    setCredential(credential)
+  const loadCredential = (cred: CredentialRecord) => {
+    setCredential(cred)
     setShowCredential(true)
   }
 
@@ -347,17 +338,15 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
         </div>
         <button
           className="NewConnectionButton"
-          onClick={() =>
-            offerCredential(
-              props.agent,
-              credentialObject.connectionId,
-              credentialObject.preview,
-              credentialObject.credentialDefinitionId,
-              attachment?.name && attachment?.attachment
-                ? { name: attachment!.name, attachment: attachment!.attachment! }
-                : undefined
-            )
-          }
+          onClick={() => {
+            offerCredential(props.agent, credentialObject.connectionId, {
+              preview: credentialObject.preview,
+              credentialDefinitionId: credentialObject.credentialDefinitionId,
+              linkedAttachments: attachment
+                ? [{ name: attachment!.name, attachment: attachment!.attachment! }]
+                : undefined,
+            })
+          }}
         >
           <b>S</b>
         </button>
@@ -379,10 +368,9 @@ const Credential: React.FC<CredentialProps> = (props) => {
         <br />
         {props.credential.credentialAttributes?.map((attribute) => {
           //Rendering of different MIME-types happens here
+          console.log(props.credential)
           switch (attribute.mimeType) {
             case 'image/png':
-              console.log(attribute.value)
-              // find matching attachment
               const attrId = attribute.value
               const attachment = props.credential.attachments
                 ? props.credential.attachments.find((attachment) => attachment.id === attrId)
@@ -390,7 +378,7 @@ const Credential: React.FC<CredentialProps> = (props) => {
               return (
                 <div className="KeyValueContainer" key={attribute.name}>
                   <b className="Key">{attribute.name}</b>
-                  <img src={attachment?.data.base64} alt={attribute.name} className="AttachmenImage"></img>
+                  <img src={attachment?.data.base64} alt={attribute.name} />
                 </div>
               )
             case 'application/pdf':

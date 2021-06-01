@@ -43,7 +43,7 @@
     ]
   },
   "dependencies": {
-    "aries-framework": "../aries-framework-javascript/aries-framework-v0.0.0.tgz",
+    "aries-framework": "../aries-framework-javascript/aries-framework-v0.0.1.tgz",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "dotenv": "^9.0.2",

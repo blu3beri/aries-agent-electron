@@ -217,6 +217,7 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
 
 const ReceiveConnection: React.FC<ReceiveConnectionProps> = (props) => {
   const [invitationUrl, setInvitationUrl] = useState<string>()
+  const [name, setName] = useState<string>('INVITEE')
 
   return (
     <div style={{ height: '100%' }}>
@@ -227,8 +228,13 @@ const ReceiveConnection: React.FC<ReceiveConnectionProps> = (props) => {
         </button>
       </div>
       <div className="ReceiveForm">
+        <input placeholder="alias" onChange={(e) => setName(e.target.value)} />
         <input placeholder={'Invitation'} onChange={(e) => setInvitationUrl(e.target.value)} />
-        <button onClick={() => receiveConnection(props.agent, invitationUrl!)}>Receive!</button>
+        <button
+          onClick={() => receiveConnection(props.agent, invitationUrl!, { alias: name, autoAcceptConnection: true })}
+        >
+          Receive!
+        </button>
       </div>
     </div>
   )
