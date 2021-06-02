@@ -7,3 +7,6 @@
 > Built with aries-framework-javascript, ReactJS and Electron
 
 ## ⚠️ WIP
+
+
+- Supports some issue and verify flows

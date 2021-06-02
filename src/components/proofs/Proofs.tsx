@@ -10,7 +10,7 @@ import {
   RequestedCredentials,
 } from 'aries-framework'
 import React, { useEffect, useState } from 'react'
-import { FaPaperPlane, FaPlus } from 'react-icons/fa'
+import { FaPaperPlane, FaPlus, FaThumbsUp } from 'react-icons/fa'
 import { useAgent } from '../../providers/agent'
 import './Proofs.scss'
 
@@ -262,6 +262,7 @@ const Proof: React.FC<ProofProps> = (props) => {
       <button
         className="NewConnectionButton"
         onClick={async () => {
+          console.log(credentials)
           switch (props.proof.state) {
             case 'request-received':
               const proofInfoNames = Object.keys(props.proof.requestMessage!.indyProofRequest!.requestedAttributes)
@@ -292,7 +293,7 @@ const Proof: React.FC<ProofProps> = (props) => {
           }
         }}
       >
-        <b>A</b>
+        <FaThumbsUp />
       </button>
     </div>
   )

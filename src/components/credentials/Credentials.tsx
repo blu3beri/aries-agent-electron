@@ -9,7 +9,7 @@ import {
 import { Attachment, AttachmentData } from 'aries-framework/build/src/decorators/attachment/Attachment'
 import { CredDef, Schema } from 'indy-sdk'
 import React, { useEffect, useState } from 'react'
-import { FaPaperPlane, FaPlus } from 'react-icons/fa'
+import { FaPaperPlane, FaPlus, FaThumbsUp } from 'react-icons/fa'
 import { useAgent } from '../../providers/agent'
 import { Base64 } from '../../utils/base64'
 import './Credentials.scss'
@@ -412,6 +412,7 @@ const Credential: React.FC<CredentialProps> = (props) => {
       <button
         className="NewConnectionButton"
         onClick={() => {
+          console.log(props.credential)
           switch (props.credential.state) {
             case 'offer-received':
               acceptOffer(props.agent, props.credential.id, props.setCredential)
@@ -427,7 +428,7 @@ const Credential: React.FC<CredentialProps> = (props) => {
           }
         }}
       >
-        <b>A</b>
+        <FaThumbsUp />
       </button>
     </div>
   )

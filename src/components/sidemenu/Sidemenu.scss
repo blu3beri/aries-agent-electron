@@ -25,11 +25,11 @@
     font-size: 1.2rem;
     color: var(--secondary);
   }
-}
 
-.ListItem:hover {
-  p {
-    color: var(--primary);
+  &:hover {
+    p {
+      color: var(--primary);
+    }
   }
 }
 
