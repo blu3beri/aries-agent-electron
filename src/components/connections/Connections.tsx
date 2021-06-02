@@ -1,8 +1,7 @@
-//TODO: Auto Accept connection is not working anymore
-
 import { Agent, ConnectionInvitationMessage, ConnectionRecord } from 'aries-framework'
 import React, { useEffect, useState } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { FaPlus, FaEnvelope } from 'react-icons/fa'
 import { useAgent } from '../../providers/agent'
 import './Connections.scss'
 
@@ -104,10 +103,10 @@ const Connections: React.FC = (): React.ReactElement => {
           })}
         </ul>
         <button className="NewConnectionButton" onClick={() => setShowNewConnection(true)}>
-          <b>+</b>
+          <FaPlus />
         </button>
         <button className="ReceiveConnectionButton" onClick={() => setShowReceiveConnection(true)}>
-          <b>R</b>
+          <FaEnvelope />
         </button>
       </div>
     )
@@ -170,7 +169,6 @@ const NewConnection: React.FC<NewConnectionProps> = (props) => {
 
   const showConnection = async (agent: Agent, config: ConnectionConfig) => {
     const { invitation } = await createConnection(agent, config)
-    //TODO: Render properly
     setInvitation(invitation)
   }
 

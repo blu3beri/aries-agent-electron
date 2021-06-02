@@ -1,4 +1,4 @@
-import { Agent, ConsoleLogger, HttpOutboundTransporter, InitConfig, LogLevel } from 'aries-framework'
+import { Agent, HttpOutboundTransporter, InitConfig } from 'aries-framework'
 import { FileSystem } from 'aries-framework/build/src/storage/fs/FileSystem'
 import dotenv from 'dotenv'
 import type Indy from 'indy-sdk'
@@ -45,29 +45,27 @@ const AgentContext = React.createContext<AgentContextValue>({
 
 const useAgent = (): AgentContextValue => useContext(AgentContext)
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const AgentProvider = (props: AgentContextProps) => {
   const [agent, setAgent] = useState<Agent | undefined>(undefined)
 
   const initAgent = async (): Promise<void> => {
     const agentConfig: InitConfig = {
-      mediatorUrl: 'http://localhost:3001',
-      label: '216',
-      walletConfig: { id: '216' },
-      walletCredentials: { key: '216' },
+      mediatorUrl: 'http://localhost:3002',
+      label: '218',
+      walletConfig: { id: '218' },
+      walletCredentials: { key: '218' },
       autoAcceptConnections: true,
       indy: indyWithErrorHandling as unknown as typeof Indy,
       fileSystem: window.fs,
       genesisTransactions,
       publicDid: 'CHfjA9fwnxWw4aBhPueNZD',
       publicDidSeed: '12312312312312345645645645645687',
-      logger: new ConsoleLogger(LogLevel.debug),
     }
     const agent = new Agent(agentConfig)
     agent.setInboundTransporter(new PollingInboundTransporter())
     agent.setOutboundTransporter(new HttpOutboundTransporter(agent))
     await agent.init().catch((e) => console.error(e))
-    console.log('agent instance created')
+    console.info('agent instance created')
 
     setAgent(agent)
   }

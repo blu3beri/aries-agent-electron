@@ -10,13 +10,9 @@ import {
   RequestedCredentials,
 } from 'aries-framework'
 import React, { useEffect, useState } from 'react'
+import { FaPaperPlane, FaPlus } from 'react-icons/fa'
 import { useAgent } from '../../providers/agent'
 import './Proofs.scss'
-
-// @ts-ignore
-// window.indy.setLogger(function (level, target, message, modulePath, file, line) {
-//   console.log('libindy said:', level, target, message, modulePath, file, line)
-// })
 
 type NewProofProps = {
   agent: Agent
@@ -118,7 +114,7 @@ const Proofs: React.FC = () => {
           })}
         </ul>
         <button className="NewCredentialButton" onClick={() => setShowNewProof(true)}>
-          <b>+</b>
+          <FaPlus />
         </button>
       </div>
     )
@@ -161,7 +157,6 @@ const NewProof: React.FC<NewProofProps> = (props) => {
       })
     })
     try {
-      console.log(requestedAttributes)
       await requestProof(props.agent, connectionId, { requestedAttributes })
     } catch (e) {
       throw new Error(e)
@@ -170,26 +165,30 @@ const NewProof: React.FC<NewProofProps> = (props) => {
 
   const credDef = JSON.parse(localStorage.getItem('credDef')!)
   return (
-    <div>
+    <div style={{ height: '100%' }}>
       <div className="TitleContainer">
         <h1>New Proof request</h1>
         <button className="BackButton" onClick={() => props.setShowNewProof(false)}>
           <b>back</b>
         </button>
       </div>
-      <select onChange={(e) => handleChange('connectionId', e)}>
-        {props.connections.map((connection) => {
-          return (
-            <option value={connection.id} key={connection.id}>
-              {connection.alias ? `${connection.alias} - ${connection.id} - ${connection.state}` : connection.id}
-            </option>
-          )
-        })}
-      </select>
-      <input type="text" placeholder={'Attribute'} onChange={(e) => handleChange('attr1', e)} />
-      <input type="text" placeholder={'Attribute'} onChange={(e) => handleChange('attr2', e)} />
-      <input type="text" placeholder={'Attribute'} onChange={(e) => handleChange('attr3', e)} />
-      <button onClick={async () => await sendProofRequest(credDef.id)}>Send!</button>
+      <div className="NewProofContainer">
+        <select onChange={(e) => handleChange('connectionId', e)}>
+          {props.connections.map((connection) => {
+            return (
+              <option value={connection.id} key={connection.id}>
+                {connection.alias ? `${connection.alias} - ${connection.id} - ${connection.state}` : connection.id}
+              </option>
+            )
+          })}
+        </select>
+        <input type="text" placeholder={'Attribute'} onChange={(e) => handleChange('attr1', e)} />
+        <input type="text" placeholder={'Attribute'} onChange={(e) => handleChange('attr2', e)} />
+        <input type="text" placeholder={'Attribute'} onChange={(e) => handleChange('attr3', e)} />
+        <button className="NewCredentialButton" onClick={async () => await sendProofRequest(credDef.id)}>
+          <FaPaperPlane />
+        </button>
+      </div>
     </div>
   )
 }
@@ -200,8 +199,6 @@ const Proof: React.FC<ProofProps> = (props) => {
   const requestedAttributes = props.proof.requestMessage?.indyProofRequest?.requestedAttributes
   const requestedProofs = props.proof.presentationMessage?.indyProof?.requested_proof.revealed_attrs
   const attributes: { name: string; value?: string }[] = []
-
-  console.log(props.proof)
 
   useEffect(() => {
     getCredentials(props.agent, setCredentials)

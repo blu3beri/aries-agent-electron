@@ -9,6 +9,7 @@ import {
 import { Attachment, AttachmentData } from 'aries-framework/build/src/decorators/attachment/Attachment'
 import { CredDef, Schema } from 'indy-sdk'
 import React, { useEffect, useState } from 'react'
+import { FaPaperPlane, FaPlus } from 'react-icons/fa'
 import { useAgent } from '../../providers/agent'
 import { Base64 } from '../../utils/base64'
 import './Credentials.scss'
@@ -179,7 +180,7 @@ const Credentials: React.FC = () => {
           })}
         </ul>
         <button className="NewCredentialButton" onClick={() => setShowNewCredential(true)}>
-          <b>+</b>
+          <FaPlus />
         </button>
       </div>
     )
@@ -348,7 +349,7 @@ const NewCredential: React.FC<NewCredentialProps> = (props) => {
             })
           }}
         >
-          <b>S</b>
+          <FaPaperPlane />
         </button>
       </div>
     </div>
@@ -368,7 +369,6 @@ const Credential: React.FC<CredentialProps> = (props) => {
         <br />
         {props.credential.credentialAttributes?.map((attribute) => {
           //Rendering of different MIME-types happens here
-          console.log(props.credential)
           switch (attribute.mimeType) {
             case 'image/png':
               const attrId = attribute.value

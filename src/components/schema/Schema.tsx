@@ -4,7 +4,7 @@ import { Schema } from 'indy-sdk'
 import React, { useState } from 'react'
 import { useAgent } from '../../providers/agent'
 import './Schema.scss'
-
+import { FaSpinner, FaPaperPlane } from 'react-icons/fa'
 const createSchema = async (agent: Agent, schemaTemplate: SchemaTemplate, attributes: {}) => {
   schemaTemplate.attributes = Object.values(attributes)
   return await agent.ledger.registerSchema(schemaTemplate)
@@ -78,7 +78,7 @@ const SchemaComponent: React.FC = () => {
   return agent ? (
     <div className="SchemaContainer">
       <h1>Schemas</h1>
-      <div>
+      <div className="SchemaInputFields">
         <div className="InputFields">
           <input type="text" placeholder="name" onChange={(e) => handleChange('name', e)} />
           <input type="text" placeholder="version" onChange={(e) => handleChange('version', e)} />
@@ -93,10 +93,16 @@ const SchemaComponent: React.FC = () => {
         className="NewCredentialButton"
         onClick={() => createSchemaAndDefinition(agent, schemaTemplate, attributes, setWritten, setLoading)}
       >
-        C
+        <FaPaperPlane />
       </button>
       <div className="SchemaInformation">
-        {loading ? <p>loading</p> : written ? <p>Schema and credential definition have been made!</p> : <div />}
+        {loading ? (
+          <FaSpinner className="Spinner" />
+        ) : written ? (
+          <p>Schema and credential definition have been made!</p>
+        ) : (
+          <div />
+        )}
       </div>
     </div>
   ) : (

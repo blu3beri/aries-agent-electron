@@ -22,7 +22,7 @@ class PollingInboundTransporter implements InboundTransporter {
       })
       this.pollDownloadMessages(agent)
     } catch (e) {
-      console.log(e.message)
+      console.warn(e.message)
     }
   }
 
