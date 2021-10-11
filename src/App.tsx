@@ -1,23 +1,28 @@
+import Indy from 'indy-sdk'
 import React from 'react'
-import { CustomView, isMacOs } from 'react-device-detect'
-import './App.scss'
-import Header from './components/header/Header'
-import Home from './pages/home/Home'
-import { AgentProvider } from './providers/agent'
 
-const App: React.FC = () => {
-  return (
-    <AgentProvider agentConfig={{}}>
-      <div className="App">
-        <CustomView condition={isMacOs}>
-          <Header />
-        </CustomView>
-        <div className={`AppContainer ${isMacOs ? 'MacOS' : ''}`}>
-          <Home />
-        </div>
-      </div>
-    </AgentProvider>
-  )
+declare global {
+  interface Window {
+    indy: typeof Indy
+    fs: FileSystem
+  }
+}
+
+const App: React.FC = () => (
+  <div>
+    <h1>Hello Indy!</h1>
+    <br />
+    <button onClick={testIndy}>test indy!</button>
+  </div>
+)
+
+// function to test if indy is working correctly
+const testIndy = async () => {
+  await window.indy.deleteWallet({ id: '123' }, { key: '123' })
+  window.indy
+    .createWallet({ id: '123' }, { key: '123' })
+    .then((_) => console.log('sucess!'))
+    .catch((e) => console.error(e))
 }
 
 export default App

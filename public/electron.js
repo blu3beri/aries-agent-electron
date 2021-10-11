@@ -10,10 +10,9 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 900,
     height: 680,
-    titleBarStyle: 'hidden',
-    backgroundColor: '#385480',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
     },
   })
   mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`)

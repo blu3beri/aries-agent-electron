@@ -8,5 +8,10 @@
 
 ## ⚠️ WIP
 
-
 - Supports some issue and verify flows
+
+### TODO
+
+- [] add aries core + node
+- [] add fs
+- [] add better error handling
