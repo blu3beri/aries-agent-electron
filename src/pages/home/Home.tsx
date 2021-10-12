@@ -11,7 +11,7 @@ const Home: React.FC = () => (
   </div>
 )
 
-const testIndy = async () => {
+const testIndy = () => {
   window.indy.createWallet({ id: '1266' }, { key: '1266' }).then(() => console.log('success'))
 }
 

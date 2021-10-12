@@ -1,9 +1,9 @@
-import { Agent, ConsoleLogger, FileSystem, LogLevel } from '@aries-framework/core'
+import { Agent, AriesFrameworkError, ConsoleLogger, FileSystem, IndySdkError, LogLevel } from '@aries-framework/core'
 import fetch from 'electron-fetch'
 import events from 'events'
-import Indy from 'indy-sdk'
 import nodeFetch from 'node-fetch'
 import ws from 'ws'
+import Indy from 'indy-sdk'
 
 class ElectronFileSystem implements FileSystem {
   basePath = window.fs.basePath
@@ -17,19 +17,26 @@ const wrapIndyCallWithErrorHandling = (func: any) => {
     try {
       return await func(...args)
     } catch (e) {
-      // TODO: properly handle errors
-      throw e
+      if (e instanceof Error || e instanceof AriesFrameworkError || e instanceof IndySdkError) {
+        const error = {
+          name: 'IndyError',
+          indyName: e.message,
+          message: e.message,
+          stack: e.stack,
+        }
+        throw error
+      }
     }
   }
 }
 
 const indyWithErrorHandling = Object.fromEntries(
   Object.entries(window.indy).map(([funcName, funcImpl]) => [funcName, wrapIndyCallWithErrorHandling(funcImpl)])
-) as unknown as typeof Indy
+)
 
 export const setupAndInitializeAgent = async (label = 'test agent bob') => {
   const electronAgentDependencies = {
-    indy: indyWithErrorHandling,
+    indy: indyWithErrorHandling as unknown as typeof Indy,
     FileSystem: ElectronFileSystem,
     fetch: fetch as unknown as typeof nodeFetch,
     EventEmitterClass: events.EventEmitter,
@@ -37,15 +44,14 @@ export const setupAndInitializeAgent = async (label = 'test agent bob') => {
   }
 
   const agent = new Agent(
-    { label, walletConfig: { key: '1266', id: '1266' }, logger: new ConsoleLogger(LogLevel.test) },
+    { label, walletConfig: { id: '12bb66', key: 'xz' }, logger: new ConsoleLogger(LogLevel.test) },
     electronAgentDependencies
   )
 
-  try {
-    await agent.initialize()
-  } catch (e) {
-    console.error(e)
-  }
+  await agent.initialize()
+
+  const x = await agent.connections.createConnection({ autoAcceptConnection: true })
+  console.log(x)
 
   return agent
 }
